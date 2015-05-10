@@ -225,4 +225,33 @@ cv::Mat mat_square(const cv::Mat& m) {
 	return m.mul(m);
 }
 
+double mat_sum(const cv::Mat_<double>& m) {
+	cv::Mat_<double> s;
+	cv::reduce(m, s, 0, CV_REDUCE_SUM);
+	cv::reduce(s, s, 1, CV_REDUCE_SUM);
+	return s(0, 0);
+}
+
+double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
+	// 列ベクトルにする
+	cv::Mat_<double> mat1 = m1;
+	if (mat1.rows == 1) mat1 = mat1.t();
+	cv::Mat_<double> mat2 = m2;
+	if (mat2.rows == 2) mat2 = mat2.t();
+
+	// データ数
+	int N = mat1.rows;
+
+	// 平均を計算する
+	cv::Mat_<double> avg1;
+	cv::reduce(mat1, avg1, 0, CV_REDUCE_AVG);
+	cv::Mat_<double> avg2;
+	cv::reduce(mat2, avg2, 0, CV_REDUCE_AVG);
+
+	cv::Mat_<double> mat1_hat = mat1 - cv::repeat(avg1, N, 1);
+	cv::Mat_<double> mat2_hat = mat2 - cv::repeat(avg2, N, 1);
+
+	return mat_sum(mat1_hat.mul(mat2_hat)) / sqrt(mat_sum(mat1_hat.mul(mat1_hat))) / sqrt(mat_sum(mat2_hat.mul(mat2_hat)));
+}
+
 }
