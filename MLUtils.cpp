@@ -112,54 +112,32 @@ bool loadDataset(char* filename, cv::Mat_<double>& X, cv::Mat_<double>& Y) {
 }
 */
 
-bool loadDataset(char* filename, cv::Mat_<double>& X, cv::Mat_<double>& Y) {
+bool loadDataset(char* filename, cv::Mat_<double>& mat) {
 	std::ifstream ifs(filename);
     std::string str;
     if (ifs.fail()) {
         return false;
     }
 	
-	vector<vector<double> > vecX;
-	vector<vector<double> > vecY;
+	vector<vector<double> > vec;
 
 	getline(ifs, str);
     while (getline(ifs, str)) {
-		if (str == "]") break;
-
-		str = str.substr(0, str.length() - 1);
+		if (str == "") break;
 
 		vector<double> rec;
-		vector<string> list = ml::splitDataset(str, ',');
+		vector<string> list = ml::splitDataset(str, ' ');
 		for (int i = 0; i < list.size(); ++i) {
 			rec.push_back(stof(list[i]));
 		}
-		vecX.push_back(rec);
+		vec.push_back(rec);
 	}
-	getline(ifs, str);
-    while (getline(ifs, str)) {
-		if (str == "]") break;
-
-		str = str.substr(0, str.length() - 1);
-
-		vector<double> rec;
-
-		vector<string> list = ml::splitDataset(str, ',');
-		for (int i = 0; i < list.size(); ++i) {
-			rec.push_back(stof(list[i]));
-		}
-
-		vecY.push_back(rec);
-    }
 	
-	X = cv::Mat_<double>(vecX.size(), vecX[0].size());
-	Y = cv::Mat_<double>(vecY.size(), vecY[0].size());
+	mat = cv::Mat_<double>(vec.size(), vec[0].size());
 
-	for (int r = 0; r < vecX.size(); ++r) {
-		for (int c = 0; c < vecX[r].size(); ++c) {
-			X(r, c) = vecX[r][c];
-		}
-		for (int c = 0; c < vecY[r].size(); ++c) {
-			Y(r, c) = vecY[r][c];
+	for (int r = 0; r < vec.size(); ++r) {
+		for (int c = 0; c < vec[r].size(); ++c) {
+			mat(r, c) = vec[r][c];
 		}
 	}
 
@@ -189,29 +167,18 @@ void saveDataset(char* filename, const cv::Mat_<double>& X, const cv::Mat_<doubl
 }
 */
 
-void saveDataset(char* filename, const cv::Mat_<double>& X, const cv::Mat_<double>& Y) {
-	int N = X.rows;
+void saveDataset(char* filename, const cv::Mat_<double>& mat) {
+	int N = mat.rows;
 
 	ofstream ofs(filename);
 
-	ofs << "[" << endl;
 	for (int iter = 0; iter < N; ++iter) {
-		for (int c = 0; c < X.cols; ++c) {
-			if (c > 0) ofs << ",";
-			ofs << X(iter, c);
+		for (int c = 0; c < mat.cols; ++c) {
+			if (c > 0) ofs << " ";
+			ofs << mat(iter, c);
 		}
-		ofs << ";" << endl;
+		ofs << endl;
 	}
-	ofs << "]" << endl;
-	ofs << "[" << endl;
-	for (int iter = 0; iter < N; ++iter) {
-		for (int c = 0; c < Y.cols; ++c) {
-			if (c > 0) ofs << ",";
-			ofs << Y(iter, c);
-		}
-		ofs << ";" << endl;
-	}
-	ofs << "]" << endl;
 	ofs.close();
 }
 
