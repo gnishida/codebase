@@ -74,7 +74,6 @@ bool loadDataset(char* filename, cv::Mat_<double>& mat) {
 	
 	vector<vector<double> > vec;
 
-	getline(ifs, str);
     while (getline(ifs, str)) {
 		if (str == "") break;
 
@@ -156,6 +155,12 @@ void addBias(cv::Mat_<double>& data) {
 	}
 }
 
+/**
+ * 行列の各要素を二乗する。
+ *
+ * @param m		行列
+ * @return		行列の各要素を二乗した結果
+ */
 cv::Mat mat_square(const cv::Mat& m) {
 	return m.mul(m);
 }
