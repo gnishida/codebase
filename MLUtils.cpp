@@ -65,53 +65,6 @@ void splitDataset(const cv::Mat_<double>& data, float ratio1, float ratio2, cv::
  * もしファイルがオープンできない場合は、falseを返却する。
  * 
  */
-/*
-bool loadDataset(char* filename, cv::Mat_<double>& X, cv::Mat_<double>& Y) {
-	std::ifstream ifs(filename);
-    std::string str;
-    if (ifs.fail()) {
-        return false;
-    }
-
-
-	vector<vector<double> > vecX;
-	vector<vector<double> > vecY;
-
-    while (getline(ifs, str)) {
-		str = str.substr(1, str.length() - 2);
-		vector<string> list = ml::splitDataset(str, ']');
-
-		vector<double> recX, recY;
-		vector<string> x_list = ml::splitDataset(list[0], ',');
-		for (int i = 0; i < x_list.size(); ++i) {
-			recX.push_back(stof(x_list[i]));
-		}
-		vector<string> y_list = ml::splitDataset(list[1].substr(2), ',');
-		for (int i = 0; i < y_list.size(); ++i) {
-			recY.push_back(stof(y_list[i]));
-		}
-
-		vecX.push_back(recX);
-		vecY.push_back(recY);
-    }
-
-
-	X = cv::Mat_<double>(vecX.size(), vecX[0].size());
-	Y = cv::Mat_<double>(vecY.size(), vecY[0].size());
-
-	for (int r = 0; r < vecX.size(); ++r) {
-		for (int c = 0; c < vecX[r].size(); ++c) {
-			X(r, c) = vecX[r][c];
-		}
-		for (int c = 0; c < vecY[r].size(); ++c) {
-			Y(r, c) = vecY[r][c];
-		}
-	}
-
-	return true;
-}
-*/
-
 bool loadDataset(char* filename, cv::Mat_<double>& mat) {
 	std::ifstream ifs(filename);
     std::string str;
@@ -144,29 +97,6 @@ bool loadDataset(char* filename, cv::Mat_<double>& mat) {
 	return true;
 }
 
-/*
-void saveDataset(char* filename, const cv::Mat_<double>& X, const cv::Mat_<double>& Y) {
-	int N = X.rows;
-
-	ofstream ofs(filename);
-
-	for (int iter = 0; iter < N; ++iter) {
-		ofs << "[";
-		for (int c = 0; c < X.cols; ++c) {
-			if (c > 0) ofs << ",";
-			ofs << X(iter, c);
-		}
-		ofs << "],[";
-		for (int c = 0; c < Y.cols; ++c) {
-			if (c > 0) ofs << ",";
-			ofs << Y(iter, c);
-		}
-		ofs << "]" << endl;
-	}
-	ofs.close();
-}
-*/
-
 void saveDataset(char* filename, const cv::Mat_<double>& mat) {
 	int N = mat.rows;
 
@@ -182,7 +112,10 @@ void saveDataset(char* filename, const cv::Mat_<double>& mat) {
 	ofs.close();
 }
 
-void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mu, cv::Mat_<double>& abs_max) {
+void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mean, cv::Mat_<double>& stddev) {
+	ml::meanStdDev(mat, mean, stddev);
+
+	normalized_mat = (mat - cv::repeat(mean, mat.rows, 1)) / cv::repeat(stddev, mat.rows, 1);
 	/*
 	// 中央値を計算
 	cv::Mat_<double> max_mat, min_mat;
@@ -198,6 +131,7 @@ void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv
 	normalized_mat /= cv::repeat(abs_max, mat.rows, 1);
 	*/
 
+	/*
 	// normalization
 	cv::reduce(mat, mu, 0, CV_REDUCE_AVG);
 	normalized_mat = mat - cv::repeat(mu, mat.rows, 1);
@@ -205,6 +139,7 @@ void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv
 	// [-1, 1]にする
 	cv::reduce(cv::abs(normalized_mat), abs_max, 0, CV_REDUCE_MAX);
 	normalized_mat /= cv::repeat(abs_max, mat.rows, 1);
+	*/
 }
 
 /**
