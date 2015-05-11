@@ -254,4 +254,23 @@ double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
 	return mat_sum(mat1_hat.mul(mat2_hat)) / sqrt(mat_sum(mat1_hat.mul(mat1_hat))) / sqrt(mat_sum(mat2_hat.mul(mat2_hat)));
 }
 
+/**
+ * 平均と標準偏差を計算する。
+ * srcの各行が各データ。
+ */
+void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev) {
+	int N = src.rows;
+
+	mean = cv::Mat_<double>(1, src.cols);
+	stddev = cv::Mat_<double>(1, src.cols);
+
+	for (int c = 0; c < src.cols; ++c) {
+		cv::Scalar m, s;
+		cv::meanStdDev(src.col(c), m, s);
+
+		mean(0, c) = m.val[0];
+		stddev(0, c) = s.val[0] * sqrt((double)N / (N - 1));
+	}
+}
+
 }

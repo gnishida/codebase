@@ -20,6 +20,7 @@ void addBias(cv::Mat_<double>& data);
 cv::Mat mat_square(const cv::Mat& m);
 double mat_sum(const cv::Mat_<double>& m);
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
+void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 
 template<typename T>
 T sqr(T val) { return val * val; }
