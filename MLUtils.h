@@ -21,6 +21,7 @@ cv::Mat mat_square(const cv::Mat& m);
 double mat_sum(const cv::Mat_<double>& m);
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
 void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
+double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData);
 
 template<typename T>
 T sqr(T val) { return val * val; }
