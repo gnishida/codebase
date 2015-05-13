@@ -3,14 +3,12 @@
 
 using namespace std;
 
-LocalLinearRegression::LocalLinearRegression(const cv::Mat_<double>& inputs, const cv::Mat_<double>& Y, double sigma) {
-	this->inputs = inputs.clone();
-	this->Y = Y.clone();
-	N = inputs.rows;
-	this->sigma = sigma;
+LocalLinearRegression::LocalLinearRegression() {
 }
 
-cv::Mat_<double> LocalLinearRegression::predict(const cv::Mat_<double>& x) {
+cv::Mat_<double> LocalLinearRegression::predict(const cv::Mat_<double>& inputs, const cv::Mat_<double>& Y, const cv::Mat_<double>& x, double sigma) {
+	int N = inputs.rows;
+
 	// 重み行列を計算
 	cv::Mat_<double> W = cv::Mat_<double>::zeros(N, N);
 	for (int i = 0; i < N; ++i) {

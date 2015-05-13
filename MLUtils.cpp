@@ -141,6 +141,15 @@ void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv
 	*/
 }
 
+void normalizeDataset2(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& minimum, cv::Mat_<double>& maximum) {
+	cv::reduce(mat, minimum, 0, CV_REDUCE_MIN);
+	normalized_mat = mat - cv::repeat(minimum, mat.rows, 1);
+
+	cv::reduce(normalized_mat, maximum, 0, CV_REDUCE_MAX);
+	normalized_mat /= cv::repeat(maximum, mat.rows, 1);
+}
+
+
 /**
  * 一番右の列に1を追加する。
  */

@@ -16,6 +16,7 @@ void splitDataset(const cv::Mat_<double>& data, float ratio1, float ratio2, cv::
 bool loadDataset(char* filename, cv::Mat_<double>& X);
 void saveDataset(char* filename, const cv::Mat_<double>& mat);
 void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
+void normalizeDataset2(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 void addBias(cv::Mat_<double>& data);
 cv::Mat mat_square(const cv::Mat& m);
 double mat_sum(const cv::Mat_<double>& m);
