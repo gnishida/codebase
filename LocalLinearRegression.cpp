@@ -20,7 +20,7 @@ cv::Mat_<double> LocalLinearRegression::predict(const cv::Mat_<double>& inputs, 
 	cv::Mat_<double> X = inputs - cv::repeat(x, N, 1);
 	ml::addBias(X);
 
-	cv::Mat_<double> alpha = (X.t() * W * X).inv(cv::DECOMP_SVD) * X.t() * W * Y;
+	cv::Mat_<double> alpha = (X.t() * W * X).inv() * X.t() * W * Y;
 
 	return alpha.row(alpha.rows - 1);
 }
