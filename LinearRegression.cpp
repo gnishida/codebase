@@ -1,4 +1,5 @@
 ﻿#include "LinearRegression.h"
+#include "MLUtils.h"
 
 using namespace std;
 
@@ -6,7 +7,10 @@ LinearRegression::LinearRegression() {
 }
 
 
-double LinearRegression::train(const cv::Mat_<double>& X, const cv::Mat_<double>& Y) {
+double LinearRegression::train(const cv::Mat_<double>& inputs, const cv::Mat_<double>& Y) {
+	cv::Mat_<double> X = inputs.clone();
+	ml::addBias(X);
+
 	W = X.inv(cv::DECOMP_SVD) * Y;
 
 	// residueの計算
@@ -16,8 +20,10 @@ double LinearRegression::train(const cv::Mat_<double>& X, const cv::Mat_<double>
 	return sqrt(avg_mat(0, 0));
 }
 
-cv::Mat LinearRegression::predict(const cv::Mat_<double>& x) {
-	return x * W;
+cv::Mat LinearRegression::predict(const cv::Mat_<double>& inputs) {
+	cv::Mat_<double> X = inputs.clone();
+	ml::addBias(X);
+	return X * W;
 }
 
 double LinearRegression::conditionNumber() {
