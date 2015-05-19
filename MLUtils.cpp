@@ -153,15 +153,12 @@ void normalizeDataset2(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, c
 /**
  * 一番右の列に1を追加する。
  */
-void addBias(cv::Mat_<double>& data) {
-	cv::Mat_<double> tmp = data.clone();
-	data = cv::Mat_<double>(tmp.rows, tmp.cols + 1);
-	for (int r = 0; r < tmp.rows; ++r) {
-		for (int c = 0; c < tmp.cols; ++c) {
-			data(r, c) = tmp(r, c);
-		}
-		data(r, tmp.cols) = 1;
-	}
+void addBias(cv::Mat& data) {
+	cv::Mat tmp = data.clone();
+	data = cv::Mat::ones(tmp.rows, tmp.cols + 1, data.type());
+
+	cv::Mat roi(data, cv::Rect(0, 0, tmp.cols, tmp.rows));
+	tmp.copyTo(roi);
 }
 
 /**
