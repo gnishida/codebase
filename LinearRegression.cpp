@@ -15,8 +15,8 @@ double LinearRegression::train(const cv::Mat_<double>& inputs, const cv::Mat_<do
 
 	// residueの計算
 	cv::Mat_<double> avg_mat;
-	cv::reduce((X * W - Y).mul(X * W - Y), avg_mat, 0, CV_REDUCE_AVG);
-	cv::reduce(avg_mat, avg_mat, 1, CV_REDUCE_SUM);
+	cv::reduce((X * W - Y).mul(X * W - Y), avg_mat, 1, CV_REDUCE_SUM);
+	cv::reduce(avg_mat, avg_mat, 0, CV_REDUCE_AVG);
 	return sqrt(avg_mat(0, 0));
 }
 
