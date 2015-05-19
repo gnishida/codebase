@@ -11,7 +11,7 @@ private:
 	vector<cv::Mat_<double> > W;
 
 public:
-	ClusteredLinearRegression(const cv::Mat_<double>& X, const cv::Mat_<double>& Y);
+	ClusteredLinearRegression(const cv::Mat_<double>& X, const cv::Mat_<double>& Y, int minClusterSize);
 
 public:
 	cv::Mat_<double> predict(const cv::Mat_<double>& x);

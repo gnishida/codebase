@@ -3,7 +3,7 @@
 
 using namespace std;
 
-ClusteredLinearRegression::ClusteredLinearRegression(const cv::Mat_<double>& X, const cv::Mat_<double>& Y) {
+ClusteredLinearRegression::ClusteredLinearRegression(const cv::Mat_<double>& X, const cv::Mat_<double>& Y, int minClusterSize) {
 	int N = X.rows;
 
 	vector<cv::Mat_<float> > clusterX, clusterY;
@@ -16,7 +16,7 @@ ClusteredLinearRegression::ClusteredLinearRegression(const cv::Mat_<double>& X, 
 		cv::Mat_<float> centroid;
 		X.convertTo(centroid, CV_32F);
 		cv::reduce(centroid, centroid, 0, CV_REDUCE_AVG);
-		partition(floatX, floatY, centroid, 20, clusterX, clusterY, floatCentroids);
+		partition(floatX, floatY, centroid, minClusterSize, clusterX, clusterY, floatCentroids);
 	}
 
 	clusterCentroids.resize(clusterX.size());
