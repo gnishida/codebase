@@ -222,11 +222,18 @@ void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<do
 /**
  * 予測データのRMSEを計算する。
  */
-double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData) {
+double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, bool averageColumns) {
 	cv::Mat_<double> error;
-	cv::reduce(mat_square(trueData - predData), error, 1, CV_REDUCE_SUM);
-	cv::sqrt(error, error);
-	cv::reduce(error, error, 0, CV_REDUCE_AVG);
+
+	if (averageColumns) {
+		cv::reduce(mat_square(trueData - predData), error, 1, CV_REDUCE_AVG);
+		cv::reduce(error, error, 0, CV_REDUCE_AVG);
+		cv::sqrt(error, error);
+	} else {
+		cv::reduce(mat_square(trueData - predData), error, 1, CV_REDUCE_SUM);
+		cv::sqrt(error, error);
+		cv::reduce(error, error, 0, CV_REDUCE_AVG);
+	}
 
 	return error(0, 0);
 }
