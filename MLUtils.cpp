@@ -221,6 +221,12 @@ void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<do
 
 /**
  * 予測データのRMSEを計算する。
+ * averageColumnsがtrueなら、D次元のデータの要素毎のRMSEを平均して計算する。
+ * さもなければ、D次元のデータについて、通常のRMSEを計算する。
+ *
+ * @param trueData			真の値
+ * @param predData			予測値
+ * @param averageColumns	true/false
  */
 double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, bool averageColumns) {
 	cv::Mat_<double> error;
