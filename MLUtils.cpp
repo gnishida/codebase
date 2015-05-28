@@ -26,12 +26,10 @@ void splitDataset(const cv::Mat_<double>& data, float ratio1, cv::Mat_<double>& 
 	data2 = cv::Mat_<double>(rows2, data.cols);
 
 	for (int r = 0; r < data.rows; ++r) {
-		for (int c = 0; c < data.cols; ++c) {
-			if (r < rows1) {
-				data1(r, c) = data(r, c);
-			} else {
-				data2(r - rows1, c) = data(r, c);
-			}
+		if (r < rows1) {
+			data.row(r).copyTo(data1.row(r));
+		} else {
+			data.row(r).copyTo(data2.row(r - rows1));
 		}
 	}
 }
@@ -56,6 +54,31 @@ void splitDataset(const cv::Mat_<double>& data, float ratio1, float ratio2, cv::
 			}
 		}
 	}
+}
+
+/**
+ * 行列の、行方向にシャッフルする。
+ * ex. 1,2,3
+ *     4,5,6
+ *     7,8,9
+ *     can be shuffled to
+ *     4,5,6
+ *     1,2,3
+ *     7,8,9
+ *
+ * @param data 行列
+ */
+void shuffle(cv::Mat_<double>& data) {
+	cv::Mat_<double> tmp = data.clone();
+
+	std::vector<int> seeds;
+	for (int i = 0; i < tmp.rows; ++i)
+		seeds.push_back(i);
+
+	cv::randShuffle(seeds);
+
+	for (int i = 0; i < tmp.rows; ++i)
+		tmp.row(seeds[i]).copyTo(data.row(i));
 }
 
 /**
@@ -162,6 +185,27 @@ void addBias(cv::Mat& data) {
 }
 
 /**
+ * quadratic
+ */
+void quadratic_dataset(const cv::Mat_<double>& data, cv::Mat_<double>& data2) {
+	int D = data.cols;
+	int D2 = D + D * (D + 1) * 0.5;
+
+	data2 = cv::Mat_<double>::zeros(data.rows, D2);
+	for (int r = 0; r < data.rows; ++r) {
+		int index = 0;
+		for (int c1 = 0; c1 < D; ++c1) {
+			for (int c2 = c1; c2 < D; ++c2) {
+				data2(r, index++) = data(r, c1) * data(r, c2);
+			}
+		}
+		for (int c = 0; c < D; ++c) {
+			data2(r, index++) = data(r, c);
+		}
+	}
+}
+
+/**
  * 行列の各要素を二乗する。
  *
  * @param m		行列
@@ -242,6 +286,60 @@ double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, 
 	}
 
 	return error(0, 0);
+}
+
+/**
+ * Uniform乱数[0, 1)を生成する
+ */
+float genRand() {
+	return rand() / (float(RAND_MAX) + 1);
+}
+
+/**
+ * 指定された範囲[a, b)のUniform乱数を生成する
+ */
+float genRand(float a, float b) {
+	return genRand() * (b - a) + a;
+}
+
+/**
+ * Normal distributionを使用して乱数を生成する。
+ */
+float genRandNormal(float mean, float variance) {
+	/*
+	static std::default_random_engine generator;
+
+	std::normal_distribution<float> distribution(mean, sqrtf(variance));
+	return distribution(generator);
+	*/
+
+#if 1
+	float m = mean;
+	float s = sqrt(variance);
+
+	/* mean m, standard deviation s */
+	float x1, x2, w, y1;
+	static float y2;
+	static int use_last = 0;
+
+	if (use_last) {	/* use value from previous call */
+		y1 = y2;
+		use_last = 0;
+	} else {
+		do {
+			x1 = 2.0 * genRand(0.0f, 1.0f) - 1.0;
+			x2 = 2.0 * genRand(0.0f, 1.0f) - 1.0;
+			w = x1 * x1 + x2 * x2;
+		} while ( w >= 1.0 );
+
+		w = sqrt( (-2.0 * log( w ) ) / w );
+		y1 = x1 * w;
+		y2 = x2 * w;
+		use_last = 1;
+	}
+
+	return m + y1 * s;
+#endif
 }
 
 }
