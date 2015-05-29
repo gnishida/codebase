@@ -26,6 +26,8 @@ double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
 void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, bool averageColumns);
 
+void mat_save(char* filename, const cv::Mat_<double>& mat, bool normalize);
+
 template<typename T>
 T sqr(T val) { return val * val; }
 

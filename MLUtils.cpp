@@ -288,6 +288,26 @@ double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, 
 	return error(0, 0);
 }
 
+void mat_save(char* filename, const cv::Mat_<double>& mat, bool normalize) {
+	cv::Mat_<double> img = mat.clone();
+
+	if (normalize) {
+		cv::Mat_<double> max_val, min_val;
+		cv::reduce(img, max_val, 0, CV_REDUCE_MAX);
+		cv::reduce(max_val, max_val, 1, CV_REDUCE_MAX);
+		cv::reduce(img, min_val, 0, CV_REDUCE_MIN);
+		cv::reduce(min_val, min_val, 1, CV_REDUCE_MIN);
+
+		double scale = 255.0 / (max_val(0, 0) - min_val(0, 0));
+		img.convertTo(img, CV_64F, scale, -min_val(0, 0) * scale);
+	} else {
+		img.convertTo(img, CV_64F, 255);
+	}
+
+	cv::flip(img, img, 0);
+	cv::imwrite(filename, img);
+}
+
 /**
  * Uniform乱数[0, 1)を生成する
  */
