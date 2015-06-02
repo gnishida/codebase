@@ -222,6 +222,15 @@ double mat_sum(const cv::Mat_<double>& m) {
 	return s(0, 0);
 }
 
+void mat_clamp(cv::Mat_<double>& m, double min_val, double max_val) {
+	for (int r = 0; r < m.rows; ++r) {
+		for (int c = 0; c < m.cols; ++c) {
+			if (m(r, c) < min_val) m(r, c) = min_val;
+			if (m(r, c) > max_val) m(r, c) = max_val;
+		}
+	}
+}
+
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
 	// 列ベクトルにする
 	cv::Mat_<double> mat1 = m1;

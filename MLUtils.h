@@ -22,6 +22,7 @@ void addBias(cv::Mat& data);
 void quadratic_dataset(const cv::Mat_<double>& data, cv::Mat_<double>& data2);
 cv::Mat mat_square(const cv::Mat& m);
 double mat_sum(const cv::Mat_<double>& m);
+void mat_clamp(cv::Mat_<double>& m, double min_val, double max_val);
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
 void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, bool averageColumns);
