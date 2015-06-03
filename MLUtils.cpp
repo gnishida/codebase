@@ -1,4 +1,5 @@
 ﻿#include "MLUtils.h"
+#include <string>
 
 using namespace std;
 
@@ -88,50 +89,85 @@ void shuffle(cv::Mat_<double>& data) {
  * もしファイルがオープンできない場合は、falseを返却する。
  * 
  */
-bool loadDataset(char* filename, cv::Mat_<double>& mat) {
-	std::ifstream ifs(filename);
-    std::string str;
-    if (ifs.fail()) {
-        return false;
-    }
-	
-	vector<vector<double> > vec;
-
-    while (getline(ifs, str)) {
-		if (str == "") break;
-
-		vector<double> rec;
-		vector<string> list = ml::splitDataset(str, ' ');
-		for (int i = 0; i < list.size(); ++i) {
-			rec.push_back(stof(list[i]));
+bool loadDataset(char* filename, cv::Mat_<double>& mat, bool binary) {
+	if (binary) {
+		std::ifstream ifs(filename, ios::binary);
+		if (ifs.fail()) {
+			return false;
 		}
-		vec.push_back(rec);
-	}
-	
-	mat = cv::Mat_<double>(vec.size(), vec[0].size());
 
-	for (int r = 0; r < vec.size(); ++r) {
-		for (int c = 0; c < vec[r].size(); ++c) {
-			mat(r, c) = vec[r][c];
+		int rows, cols;
+		ifs.read((char*)&rows, sizeof(int));
+		ifs.read((char*)&cols, sizeof(int));
+
+		mat = cv::Mat_<double>(rows, cols);
+		for (int r = 0; r < rows; ++r) {
+			for (int c = 0; c < cols; ++c) {
+				ifs.read((char*)&mat(r, c), sizeof(double));
+			}
 		}
+		ifs.close();
+	} else {
+		std::ifstream ifs(filename);
+		if (ifs.fail()) {
+			return false;
+		}
+
+		vector<vector<double> > vec;
+
+		std::string str;
+		while (getline(ifs, str)) {
+			if (str == "") break;
+
+			vector<double> rec;
+			vector<string> list = ml::splitDataset(str, ' ');
+			for (int i = 0; i < list.size(); ++i) {
+				rec.push_back(stof(list[i]));
+			}
+			vec.push_back(rec);
+		}
+
+		mat = cv::Mat_<double>(vec.size(), vec[0].size());
+
+		for (int r = 0; r < vec.size(); ++r) {
+			for (int c = 0; c < vec[r].size(); ++c) {
+				mat(r, c) = vec[r][c];
+			}
+		}
+		ifs.close();
 	}
 
 	return true;
 }
 
-void saveDataset(char* filename, const cv::Mat_<double>& mat) {
+void saveDataset(char* filename, const cv::Mat_<double>& mat, bool binary) {
 	int N = mat.rows;
 
-	ofstream ofs(filename);
+	if (binary) {
+		ofstream ofs(filename, ios::binary);
 
-	for (int iter = 0; iter < N; ++iter) {
-		for (int c = 0; c < mat.cols; ++c) {
-			if (c > 0) ofs << " ";
-			ofs << mat(iter, c);
+		int rows = mat.rows;
+		int cols = mat.cols;
+		ofs.write((char*)&rows, sizeof(int));
+		ofs.write((char*)&cols, sizeof(int));
+		for (int iter = 0; iter < mat.rows; ++iter) {
+			for (int c = 0; c < mat.cols; ++c) {
+				ofs.write((char*)&mat(iter, c), sizeof(double));
+			}
 		}
-		ofs << endl;
+		ofs.close();
+	} else {
+		ofstream ofs(filename);
+
+		for (int iter = 0; iter < N; ++iter) {
+			for (int c = 0; c < mat.cols; ++c) {
+				if (c > 0) ofs << " ";
+				ofs << mat(iter, c);
+			}
+			ofs << endl;
+		}
+		ofs.close();
 	}
-	ofs.close();
 }
 
 void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mean, cv::Mat_<double>& stddev) {
