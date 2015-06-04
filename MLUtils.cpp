@@ -307,7 +307,7 @@ cv::Mat mat_min(const cv::Mat& m1, const cv::Mat& m2) {
 			}
 		}
 	}
-
+	
 	return ret;
 }
 
