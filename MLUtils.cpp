@@ -287,12 +287,60 @@ double mat_min(const cv::Mat& m) {
 	return mat_get_value(tmp, 0, 0);
 }
 
+/**
+ * 2つの行列の、要素ごとのmaxを計算し、返却する。
+ *
+ * @param m1		行列1
+ * @param m2		行列2
+ * @return			要素ごとのmax
+ */
+cv::Mat mat_min(const cv::Mat& m1, const cv::Mat& m2) {
+	cv::Mat ret = m1.clone();
+
+	for (int r = 0; r < m1.rows; ++r) {
+		for (int c = 0; c < m1.cols; ++c) {
+			double v1 = mat_get_value(m1, r, c);
+			double v2 = mat_get_value(m2, r, c);
+
+			if (v2 < v1) {
+				mat_set_value(ret, r, c, v2);
+			}
+		}
+	}
+
+	return ret;
+}
+
 double mat_max(const cv::Mat& m) {
 	cv::Mat tmp;
 	cv::reduce(m, tmp, 0, CV_REDUCE_MAX);
 	cv::reduce(tmp, tmp, 1, CV_REDUCE_MAX);
 
 	return mat_get_value(tmp, 0, 0);
+}
+
+/**
+ * 2つの行列の、要素ごとのmaxを計算し、返却する。
+ *
+ * @param m1		行列1
+ * @param m2		行列2
+ * @return			要素ごとのmax
+ */
+cv::Mat mat_max(const cv::Mat& m1, const cv::Mat& m2) {
+	cv::Mat ret = m1.clone();
+
+	for (int r = 0; r < m1.rows; ++r) {
+		for (int c = 0; c < m1.cols; ++c) {
+			double v1 = mat_get_value(m1, r, c);
+			double v2 = mat_get_value(m2, r, c);
+
+			if (v2 > v1) {
+				mat_set_value(ret, r, c, v2);
+			}
+		}
+	}
+
+	return ret;
 }
 
 /**
