@@ -242,6 +242,60 @@ void quadratic_dataset(const cv::Mat_<double>& data, cv::Mat_<double>& data2) {
 }
 
 /**
+ * 行列の指定した行、列の値を返却する。
+ *
+ * @param m		行列
+ * @param r		行
+ * @param c		列
+ * @return		値
+ */
+double mat_get_value(const cv::Mat& m, int r, int c) {
+	if (m.type() == CV_8U) {
+		return m.at<uchar>(r, c);
+	} else if (m.type() == CV_32F) {
+		return m.at<float>(r, c);
+	} else if (m.type() == CV_64F) {
+		return m.at<double>(r, c);
+	} else {
+		return 0.0;
+	}
+}
+
+/**
+ * 行列の指定した行、列の値を更新する。
+ *
+ * @param m		行列
+ * @param r		行
+ * @param c		列
+ * @return		値
+ */
+void mat_set_value(cv::Mat& m, int r, int c, double val) {
+	if (m.type() == CV_8U) {
+		m.at<uchar>(r, c) = val;
+	} else if (m.type() == CV_32F) {
+		m.at<float>(r, c) = val;
+	} else if (m.type() == CV_64F) {
+		m.at<double>(r, c) = val;
+	}
+}
+
+double mat_min(const cv::Mat& m) {
+	cv::Mat tmp;
+	cv::reduce(m, tmp, 0, CV_REDUCE_MIN);
+	cv::reduce(tmp, tmp, 1, CV_REDUCE_MIN);
+
+	return mat_get_value(tmp, 0, 0);
+}
+
+double mat_max(const cv::Mat& m) {
+	cv::Mat tmp;
+	cv::reduce(m, tmp, 0, CV_REDUCE_MAX);
+	cv::reduce(tmp, tmp, 1, CV_REDUCE_MAX);
+
+	return mat_get_value(tmp, 0, 0);
+}
+
+/**
  * 行列の各要素を二乗する。
  *
  * @param m		行列
@@ -251,20 +305,52 @@ cv::Mat mat_square(const cv::Mat& m) {
 	return m.mul(m);
 }
 
-double mat_sum(const cv::Mat_<double>& m) {
-	cv::Mat_<double> s;
+double mat_sum(const cv::Mat& m) {
+	cv::Mat s;
 	cv::reduce(m, s, 0, CV_REDUCE_SUM);
 	cv::reduce(s, s, 1, CV_REDUCE_SUM);
-	return s(0, 0);
+	return mat_get_value(s, 0, 0);
 }
 
-void mat_clamp(cv::Mat_<double>& m, double min_val, double max_val) {
+/**
+ * 行列の各要素について、最小値より小さい値は最小値に、最大値より大きい値は最大値になるようにする。
+ *
+ * @param m			行列
+ * @param min_val	最小値
+ * @param max_val	最大値
+ */
+void mat_clamp(cv::Mat& m, double min_val, double max_val) {
 	for (int r = 0; r < m.rows; ++r) {
 		for (int c = 0; c < m.cols; ++c) {
-			if (m(r, c) < min_val) m(r, c) = min_val;
-			if (m(r, c) > max_val) m(r, c) = max_val;
+			double v = mat_get_value(m, r, c);
+			if (v < min_val) mat_set_value(m, r, c, min_val);
+			if (v > max_val) mat_set_value(m, r, c, max_val);
 		}
 	}
+}
+
+/**
+ * 行列matを画像として保存する。ただし、1が白色、0が黒色となる。
+ *
+ * @param filename		ファイル名
+ * @param mat			行列
+ * @normalize			trueなら、最小値を黒、最大値を白色となるよう、スケールする
+ */
+void mat_save(char* filename, const cv::Mat& mat, bool normalize) {
+	cv::Mat_<double> img = mat.clone();
+
+	if (normalize) {
+		double max_val = mat_max(mat);
+		double min_val = mat_min(mat);
+
+		double scale = 255.0 / (max_val - min_val);
+		img.convertTo(img, CV_64F, scale, -min_val * scale);
+	} else {
+		img.convertTo(img, CV_64F, 255);
+	}
+
+	cv::flip(img, img, 0);
+	cv::imwrite(filename, img);
 }
 
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
@@ -293,7 +379,7 @@ double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
  * 平均と標準偏差を計算する。
  * srcの各行が各データ。
  */
-void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev) {
+void meanStdDev(const cv::Mat& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev) {
 	int N = src.rows;
 
 	mean = cv::Mat_<double>(1, src.cols);
@@ -331,26 +417,6 @@ double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, 
 	}
 
 	return error(0, 0);
-}
-
-void mat_save(char* filename, const cv::Mat_<double>& mat, bool normalize) {
-	cv::Mat_<double> img = mat.clone();
-
-	if (normalize) {
-		cv::Mat_<double> max_val, min_val;
-		cv::reduce(img, max_val, 0, CV_REDUCE_MAX);
-		cv::reduce(max_val, max_val, 1, CV_REDUCE_MAX);
-		cv::reduce(img, min_val, 0, CV_REDUCE_MIN);
-		cv::reduce(min_val, min_val, 1, CV_REDUCE_MIN);
-
-		double scale = 255.0 / (max_val(0, 0) - min_val(0, 0));
-		img.convertTo(img, CV_64F, scale, -min_val(0, 0) * scale);
-	} else {
-		img.convertTo(img, CV_64F, 255);
-	}
-
-	cv::flip(img, img, 0);
-	cv::imwrite(filename, img);
 }
 
 /**

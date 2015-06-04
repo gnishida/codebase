@@ -20,14 +20,20 @@ void normalizeDataset(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv
 void normalizeDataset2(cv::Mat_<double> mat, cv::Mat_<double>& normalized_mat, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 void addBias(cv::Mat& data);
 void quadratic_dataset(const cv::Mat_<double>& data, cv::Mat_<double>& data2);
+
+double mat_get_value(const cv::Mat& m, int r, int c);
+void mat_set_value(cv::Mat& m, int r, int c, double val);
+double mat_min(const cv::Mat& m);
+double mat_max(const cv::Mat& m);
 cv::Mat mat_square(const cv::Mat& m);
-double mat_sum(const cv::Mat_<double>& m);
-void mat_clamp(cv::Mat_<double>& m, double min_val, double max_val);
+double mat_sum(const cv::Mat& m);
+void mat_clamp(cv::Mat& m, double min_val, double max_val);
+void mat_save(char* filename, const cv::Mat& mat, bool normalize = false);
+
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
-void meanStdDev(const cv::Mat_<double>& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
+void meanStdDev(const cv::Mat& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
 double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, bool averageColumns);
 
-void mat_save(char* filename, const cv::Mat_<double>& mat, bool normalize);
 
 template<typename T>
 T sqr(T val) { return val * val; }
