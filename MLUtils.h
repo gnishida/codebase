@@ -27,8 +27,9 @@ double mat_min(const cv::Mat& m);
 cv::Mat mat_min(const cv::Mat& m1, const cv::Mat& m2);
 double mat_max(const cv::Mat& m);
 cv::Mat mat_max(const cv::Mat& m1, const cv::Mat& m2);
-cv::Mat mat_square(const cv::Mat& m);
 double mat_sum(const cv::Mat& m);
+cv::Mat mat_square(const cv::Mat& m);
+double mat_squared_sum(const cv::Mat& m);
 void mat_clamp(cv::Mat& m, double min_val, double max_val);
 void mat_save(char* filename, const cv::Mat& mat, bool normalize = false);
 

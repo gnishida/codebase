@@ -344,6 +344,18 @@ cv::Mat mat_max(const cv::Mat& m1, const cv::Mat& m2) {
 }
 
 /**
+ * 行列の要素和を返却する。
+ *
+ * @param m		行列
+ */
+double mat_sum(const cv::Mat& m) {
+	cv::Mat s;
+	cv::reduce(m, s, 0, CV_REDUCE_SUM);
+	cv::reduce(s, s, 1, CV_REDUCE_SUM);
+	return mat_get_value(s, 0, 0);
+}
+
+/**
  * 行列の各要素を二乗する。
  *
  * @param m		行列
@@ -353,11 +365,14 @@ cv::Mat mat_square(const cv::Mat& m) {
 	return m.mul(m);
 }
 
-double mat_sum(const cv::Mat& m) {
-	cv::Mat s;
-	cv::reduce(m, s, 0, CV_REDUCE_SUM);
-	cv::reduce(s, s, 1, CV_REDUCE_SUM);
-	return mat_get_value(s, 0, 0);
+/**
+ * 行列の要素の二乗和を返却する。
+ *
+ * @param m		行列
+ * @return		行列の各要素の二乗和
+ */
+double mat_squared_sum(const cv::Mat& m) {
+	return mat_sum(mat_square(m));
 }
 
 /**
