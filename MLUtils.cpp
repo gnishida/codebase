@@ -557,4 +557,9 @@ float genRandNormal(float mean, float variance) {
 #endif
 }
 
+float genRandInt(float a, float b, int num) {
+	int r = genRand(0, num);
+	return a + (b - a) / (float)(num - 1) * r;
+}
+
 }

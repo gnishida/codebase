@@ -46,6 +46,7 @@ T sqr(T val) { return val * val; }
 float genRand();
 float genRand(float a, float b);
 float genRandNormal(float mean, float variance);
+float genRandInt(float a, float b, int num);
 
 template<typename T>
 int sampleFromCdf(const std::vector<T> &cdf) {
