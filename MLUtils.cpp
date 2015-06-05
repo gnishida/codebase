@@ -393,6 +393,27 @@ void mat_clamp(cv::Mat& m, double min_val, double max_val) {
 }
 
 /**
+ * 行列の各要素について、しきい値より大きい場合は1、しきい値以下の場合は0にする。
+ *
+ * @param m				行列
+ * @param threshold		しきい値
+ * @return				結果の行列
+ */
+cv::Mat mat_threhold(const cv::Mat& m, double threshold) {
+	cv::Mat ret(m.size(), m.type());
+
+	for (int r = 0; r < m.rows; ++r) {
+		for (int c = 0; c < m.cols; ++c) {
+			double v = mat_get_value(m, r, c);
+			if (v > threshold) mat_set_value(ret, r, c, 1.0);
+			else mat_set_value(ret, r, c, 0.0);
+		}
+	}
+
+	return ret;
+}
+
+/**
  * 行列matを画像として保存する。ただし、1が白色、0が黒色となる。
  *
  * @param filename		ファイル名
