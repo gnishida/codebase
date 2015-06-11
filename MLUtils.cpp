@@ -5,6 +5,7 @@ using namespace std;
 
 namespace ml {
 
+
 vector<string> splitDataset(const string &str, char sep) {
     vector<string> v;
     stringstream ss(str);
@@ -435,6 +436,13 @@ void mat_save(char* filename, const cv::Mat& mat, bool normalize) {
 
 	cv::flip(img, img, 0);
 	cv::imwrite(filename, img);
+}
+
+double mat_variance(const cv::Mat& mat) {
+	cv::Mat avg;
+	cv::reduce(mat, avg, 0, CV_REDUCE_AVG);
+
+	return mat_squared_sum(mat - cv::repeat(avg, mat.rows, 1)) / mat.rows;
 }
 
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
