@@ -44,6 +44,7 @@ template<typename T>
 T sqr(T val) { return val * val; }
 
 // random
+void initRand(int seed);
 float genRand();
 float genRand(float a, float b);
 float genRandNormal(float mean, float variance);

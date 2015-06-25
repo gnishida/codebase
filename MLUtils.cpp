@@ -511,6 +511,15 @@ double rmse(const cv::Mat_<double>& trueData, const cv::Mat_<double>& predData, 
 	return error(0, 0);
 }
 
+void initRand(int seed) {
+	srand(seed);
+
+	int n = seed % 13;
+	for (int i = 0; i < n; ++i) {
+		genRand();
+	}
+}
+
 /**
  * Uniform乱数[0, 1)を生成する
  */
