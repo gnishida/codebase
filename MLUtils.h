@@ -78,4 +78,28 @@ int sampleFromPdf(const std::vector<T> &pdf) {
 	return sampleFromCdf(cdf);
 }
 
+template<typename T>
+T sum(const std::vector<T>& vec) {
+	T s = 0;
+	for (int i = 0; i < vec.size(); ++i) {
+		s += vec[i];
+	}
+	return s;
+}
+
+template<typename T>
+T mean(const std::vector<T>& vec) {
+	return sum(vec) / vec.size();
+}
+
+template<typename T>
+T variance(const std::vector<T>& vec) {
+	T avg = mean(vec);
+	T s = 0;
+	for (int i = 0; i < vec.size(); ++i) {
+		s += (vec[i] - avg) * (vec[i] - avg);
+	}
+	return s / vec.size();
+}
+
 }
