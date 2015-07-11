@@ -564,7 +564,7 @@ float genRandNormal(float mean, float variance) {
 			w = x1 * x1 + x2 * x2;
 		} while ( w >= 1.0 );
 
-		w = sqrt( (-2.0 * log( w ) ) / w );
+		w = sqrt( (-2.0 * ::log( w ) ) / w );
 		y1 = x1 * w;
 		y2 = x2 * w;
 		use_last = 1;
@@ -577,6 +577,10 @@ float genRandNormal(float mean, float variance) {
 float genRandInt(float a, float b, int num) {
 	int r = genRand(0, num);
 	return a + (b - a) / (float)(num - 1) * r;
+}
+
+double log(double val, double base) {
+	return ::log(val) / ::log(base);
 }
 
 }

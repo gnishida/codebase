@@ -102,4 +102,6 @@ T variance(const std::vector<T>& vec) {
 	return s / vec.size();
 }
 
+double log(double val, double base);
+
 }

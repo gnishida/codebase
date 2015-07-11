@@ -125,6 +125,9 @@ void drawCylinder(const glm::vec3& p, float h, float r, const glm::vec3& color) 
 	glEnd();
 }
 
+/**
+ * ベースの中心 p、高さ h、半径 radiusの円柱を描画する。
+ */
 void drawCylinder(const glm::vec3& p, float h, float r, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 
@@ -138,6 +141,42 @@ void drawCylinder(const glm::vec3& p, float h, float r, const glm::vec3& color, 
 		glm::vec4 p4(cosf(theta1) * r + p.x, sinf(theta1) * r + p.y, p.z + h, 1);
 		glm::vec4 n1(cosf(theta1), sinf(theta1), 0, 0);
 		glm::vec4 n2(cosf(theta2), sinf(theta2), 0, 0);
+
+		p1 = mat * p1;
+		p2 = mat * p2;
+		p3 = mat * p3;
+		p4 = mat * p4;
+		n1 = mat * n1;
+		n2 = mat * n2;
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n1), color));
+	}
+}
+
+/**
+ * ベースの中心 p、高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
+ */
+void drawCone(const glm::vec3& p, float h, float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	int slices = 12;
+
+	float phi = atan2(r1 - r2, h);
+
+	for (int i = 0; i < slices; ++i) {
+		float theta1 = M_PI * 2.0 * (float)i / slices;
+		float theta2 = M_PI * 2.0 * (float)(i + 1) / slices;
+
+		glm::vec4 p1(cosf(theta1) * r1 + p.x, sinf(theta1) * r1 + p.y, p.z, 1);
+		glm::vec4 p2(cosf(theta2) * r1 + p.x, sinf(theta2) * r1 + p.y, p.z, 1);
+		glm::vec4 p3(cosf(theta2) * r2 + p.x, sinf(theta2) * r2 + p.y, p.z + h, 1);
+		glm::vec4 p4(cosf(theta1) * r2 + p.x, sinf(theta1) * r2 + p.y, p.z + h, 1);
+		glm::vec4 n1(cosf(theta1) * cosf(phi), sinf(theta1) * cosf(phi), sinf(phi), 0);
+		glm::vec4 n2(cosf(theta2) * cosf(phi), sinf(theta2) * cosf(phi), sinf(phi), 0);
 
 		p1 = mat * p1;
 		p2 = mat * p2;
