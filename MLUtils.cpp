@@ -445,6 +445,21 @@ double mat_variance(const cv::Mat& mat) {
 	return mat_squared_sum(mat - cv::repeat(avg, mat.rows, 1)) / mat.rows;
 }
 
+/**
+ * centerを中心とし、半径radiusの円の内側が1、外側が0のmask行列を返却する。
+ *
+ * @param rows		行数
+ * @param cols		列数
+ * @param center	中心
+ * @param radius	半径
+ * @return			mask行列
+ */
+cv::Mat mat_mask(int rows, int cols, int type, const cv::Point& center, int radius) {
+	cv::Mat mask = cv::Mat::zeros(rows, cols, type);
+	cv::circle(mask, center, radius, 1, -1);
+	return mask;
+}
+
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
 	// 列ベクトルにする
 	cv::Mat_<double> mat1 = m1;

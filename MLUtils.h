@@ -34,6 +34,7 @@ void mat_clamp(cv::Mat& m, double min_val, double max_val);
 cv::Mat mat_threhold(const cv::Mat& m, double threshold);
 void mat_save(char* filename, const cv::Mat& mat, bool normalize = false);
 double mat_variance(const cv::Mat& mat);
+cv::Mat mat_mask(int rows, int cols, int type, const cv::Point& center, int radius);
 
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2);
 void meanStdDev(const cv::Mat& src, cv::Mat_<double>& mean, cv::Mat_<double>& stddev);
