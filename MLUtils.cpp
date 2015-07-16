@@ -454,10 +454,27 @@ double mat_variance(const cv::Mat& mat) {
  * @param radius	半径
  * @return			mask行列
  */
-cv::Mat mat_mask(int rows, int cols, int type, const cv::Point& center, int radius) {
+cv::Mat create_mask(int rows, int cols, int type, const cv::Point& center, int radius) {
 	cv::Mat mask = cv::Mat::zeros(rows, cols, type);
 	cv::circle(mask, center, radius, 1, -1);
 	return mask;
+}
+
+/**
+ * マスク処理する。
+ * alpha=1なら、マスク値=1のピクセルのみ残して、後は0にする。
+ * alpha=0なら、元の画像のまま。
+ *
+ * @param m		元の画像
+ * @param mask	マスク
+ * @param alpha	アルファ値
+ * @return		マスク処理した結果
+ */
+cv::Mat mat_mask(const cv::Mat& m, const cv::Mat& mask, float alpha) {
+	cv::Mat m2;
+	cv::subtract(m, cv::Mat::zeros(m.size(), m.type()), m2, mask);
+
+	return m * (1.0 - alpha) + m2 * alpha;
 }
 
 double correlation(const cv::Mat_<double>& m1, const cv::Mat_<double>& m2) {
