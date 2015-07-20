@@ -32,11 +32,11 @@ void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat
 	}
 }
 
-void drawQuad(float l, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
-	glm::vec4 p1(-l * 0.5, -l * 0.5, 0, 1);
-	glm::vec4 p2(l * 0.5, -l * 0.5, 0, 1);
-	glm::vec4 p3(l * 0.5, l * 0.5, 0, 1);
-	glm::vec4 p4(-l * 0.5, l * 0.5, 0, 1);
+void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	glm::vec4 p1(-w * 0.5, -h * 0.5, 0, 1);
+	glm::vec4 p2(w * 0.5, -h * 0.5, 0, 1);
+	glm::vec4 p3(w * 0.5, h * 0.5, 0, 1);
+	glm::vec4 p4(-w * 0.5, h * 0.5, 0, 1);
 	glm::vec4 n(0, 0, 1, 0);
 
 	p1 = mat * p1;
