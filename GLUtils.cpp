@@ -45,13 +45,13 @@ void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, st
 	p4 = mat * p4;
 	n = mat * n;
 
-	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color));
-	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n), color));
-	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color));
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n), color, glm::vec3(1, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec3(1, 1, 0)));
 
-	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color));
-	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color));
-	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), color));
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec3(1, 1, 0)));
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), color, glm::vec3(0, 1, 0)));
 }
 
 void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
