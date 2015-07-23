@@ -34,6 +34,7 @@ public:
 	void init();
 	void addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices);
 	void removeObject(const QString& object_name);
+	void renderAll();
 	void render(const QString& object_name);
 	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir);
 

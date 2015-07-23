@@ -54,6 +54,28 @@ void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, st
 	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), color, glm::vec3(0, 1, 0)));
 }
 
+void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const glm::vec3& t3, const glm::vec3& t4, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	glm::vec4 p1(-w * 0.5, -h * 0.5, 0, 1);
+	glm::vec4 p2(w * 0.5, -h * 0.5, 0, 1);
+	glm::vec4 p3(w * 0.5, h * 0.5, 0, 1);
+	glm::vec4 p4(-w * 0.5, h * 0.5, 0, 1);
+	glm::vec4 n(0, 0, 1, 0);
+
+	p1 = mat * p1;
+	p2 = mat * p2;
+	p3 = mat * p3;
+	p4 = mat * p4;
+	n = mat * n;
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), glm::vec3(1, 1, 1), t1));
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n), glm::vec3(1, 1, 1), t2));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), glm::vec3(1, 1, 1), t3));
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), glm::vec3(1, 1, 1), t1));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), glm::vec3(1, 1, 1), t3));
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), glm::vec3(1, 1, 1), t4));
+}
+
 void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 	int stacks = 6;

@@ -120,6 +120,12 @@ void RenderManager::removeObject(const QString& object_name) {
 	objects.remove(object_name);
 }
 
+void RenderManager::renderAll() {
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		render(it.key());
+	}
+}
+
 void RenderManager::render(const QString& object_name) {
 	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		GLuint texId = it.key();
