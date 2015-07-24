@@ -156,4 +156,27 @@ void drawCylinder(float radius1, float radius2, float h, const glm::vec3& color,
 	}
 }
 
+void drawArrow(float radius, float length, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	drawCylinder(radius, radius, length - radius * 4, color, mat, vertices);
+	glm::mat4 m = glm::translate(mat, glm::vec3(0, 0, length - radius * 4));
+	drawCylinder(radius * 2, 0, radius * 4, color, m, vertices);
+}
+
+void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	// X軸を描画
+	glm::mat4 m1 = glm::rotate(mat, deg2rad(90), glm::vec3(0, 1, 0));
+	drawArrow(radius, length, glm::vec3(0, 0, 1), m1, vertices);
+
+	// Y軸を描画
+	glm::mat4 m2 = glm::rotate(mat, deg2rad(-90), glm::vec3(1, 0, 0));
+	drawArrow(radius, length, glm::vec3(1, 0, 0), m2, vertices);
+
+	// Z軸を描画
+	drawArrow(radius, length, glm::vec3(0, 1, 0), mat, vertices);
+}
+
+float deg2rad(float degree) {
+	return degree * M_PI / 180.0;
+}
+
 }

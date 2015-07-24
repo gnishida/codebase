@@ -12,5 +12,9 @@ void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, st
 void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const glm::vec3& t3, const glm::vec3& t4, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawCylinder(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
+void drawArrow(float radius, float length, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
+void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vertex>& vertices);
+
+float deg2rad(float degree);
 
 }
