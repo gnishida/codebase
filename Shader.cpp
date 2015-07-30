@@ -59,17 +59,23 @@ uint Shader::createProgram(const char *vertex_file, const char* fragment_file) {
 void Shader::loadTextFile(const string& filename, string& str) {
 	/*
 	ifstream file(filename);
-	if (!file.is_open()) {
+	if (file.fail()) {
 		stringstream ss;
 		ss << "Could not open file: " << filename;
+		cout << ss << endl;
 		throw ss.str();
 	}
 
-	stringstream buffer;
-	buffer << file.rdbuf();
-	str = buffer.str();
+	QString text;
+	char line[1024];
+	while (!file.eof()) {
+		char line[1024];
+		file.getline(line, 1024);
+		text += line;
+	}
+	str = std::string(text.toAscii().constData());
 	*/
-
+	
 	QFile file(filename.c_str());
 	if (!file.open(QIODevice::ReadOnly)) {
 		stringstream ss;
