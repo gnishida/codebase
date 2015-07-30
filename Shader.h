@@ -10,10 +10,8 @@ public:
 	uint createProgram(const char *vertex_source, const char* fragment_source);
 
 private:
-	void loadTextFile(const QString& fileName, std::string& str);
-	GLuint loadShader(std::string& source, GLuint mode);
-	GLboolean printShaderInfoLog(GLuint shader, const char *str);
-	GLboolean printProgramInfoLog(GLuint program);
+	void loadTextFile(const std::string& filename, std::string& str);
+	GLuint compileShader(const std::string& source, GLuint mode);
 
 private:
 	GLuint program;

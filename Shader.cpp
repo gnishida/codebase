@@ -1,17 +1,28 @@
-#include <glew.h>
+﻿#include <glew.h>
 #include "Shader.h"
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <QFile>
 #include <QTextStream>
 
-uint Shader::createProgram(const char *vertex_file, const char* fragment_file)
-{
+using namespace std;
+
+/**
+ * 指定されたvertex shader、fragment shaderを読み込んでコンパイルし、
+ * プログラムにリンクする。
+ *
+ * @param vertex_file		vertex shader file
+ * @param fragment_file		frament shader file
+ * @return					program id
+ */
+uint Shader::createProgram(const char *vertex_file, const char* fragment_file) {
 	std::string source;
 	loadTextFile(vertex_file, source);
-	vertex_shader = loadShader(source, GL_VERTEX_SHADER);
+	vertex_shader = compileShader(source, GL_VERTEX_SHADER);
 
 	loadTextFile(fragment_file, source);
-	fragment_shader = loadShader(source,GL_FRAGMENT_SHADER);
+	fragment_shader = compileShader(source,GL_FRAGMENT_SHADER);
 
 	// create program
 	program = glCreateProgram();
@@ -20,100 +31,95 @@ uint Shader::createProgram(const char *vertex_file, const char* fragment_file)
 	glBindFragDataLocation(program, 0, "outputF");
 	glLinkProgram(program);
 	
-	{
-		int infologLength = 0;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH,&infologLength);
-		if (infologLength > 0){
-			char *infoLog= (char *)malloc(infologLength);
-			glGetProgramInfoLog(program, infologLength, NULL, infoLog);
-			printf("%s\n",infoLog);
-			free(infoLog);
-		}
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE) {
+		GLint logLength;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		char* logText = new char[logLength];
+		glGetProgramInfoLog(program, logLength, NULL, logText);
+
+		stringstream ss;
+		ss << "Error linking program:" << endl << logText << endl;
+		delete [] logText;
+
+		glDeleteProgram(program);
+		throw runtime_error(ss.str());
 	}
 
 	return program;
 }
 
-void Shader::loadTextFile(const QString& fileName, std::string& str)
-{
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly)) {
-		printf("ERROR: loadTexFile: %s\n", file.errorString().toAscii().constData());
+/**
+ * Load a text from a file.
+ *
+ * @param filename		file name
+ * @param str [OUT]		the text in the file
+ */
+void Shader::loadTextFile(const string& filename, string& str) {
+	/*
+	ifstream file(filename);
+	if (!file.is_open()) {
+		stringstream ss;
+		ss << "Could not open file: " << filename;
+		throw ss.str();
 	}
 
+	stringstream buffer;
+	buffer << file.rdbuf();
+	str = buffer.str();
+	*/
+
+	QFile file(filename.c_str());
+	if (!file.open(QIODevice::ReadOnly)) {
+		stringstream ss;
+		ss << "Could not open file: " << filename;
+		throw ss.str();
+	}
 	QTextStream in(&file);
 	QString text;
-	while(!in.atEnd()) {
+	while (!in.atEnd()) {
 		QString line = in.readLine();    
-		text+=line+"\n"; 
+		text += line + "\n"; 
 	}
 	file.close();
 	str = std::string(text.toAscii().constData());
 }
 
 /**
- * Load a shader from the source.
- * Specify the corresponding mode, GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
+ * compile a shader.
+ *
+ * @param source	shader text
+ * @param mode		GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
+ * @return			shader id
  */
-GLuint Shader::loadShader(std::string& source, GLuint mode)
-{
+GLuint Shader::compileShader(const string& source, GLuint mode) {
 	GLenum err;
-	uint id = glCreateShader(mode);
+	uint shader = glCreateShader(mode);
 	const char* csource = source.c_str();
-	glShaderSource(id, 1, &csource, NULL);
-	glCompileShader(id);
+	GLint length = source.length();
+	glShaderSource(shader, 1, &csource, &length);//NULL);
+	glCompileShader(shader);
 
-	int infologLength = 0;
-	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infologLength);
-	if (infologLength > 1) {
-		char* infoLog = (char*)malloc(infologLength);
-		glGetShaderInfoLog(id, 1000, NULL, infoLog);
-		printf("Compile status %d:\n %s\n", infologLength, infoLog);
-		free(infoLog);
-		exit(1);
-	} else {
-		printf("Compile status: OK\n");
-	}
-
-	return id;
-}
-
-GLboolean Shader::printShaderInfoLog(GLuint shader, const char *str)
-{
 	GLint status;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-	if (status == GL_FALSE) std::cerr << "Compile Error in " << str << std::endl;
-  
-	GLsizei bufSize;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH , &bufSize);
-  
-	if (bufSize > 1) {
-		GLchar *infoLog = new GLchar[bufSize];
-		GLsizei length;
-		glGetShaderInfoLog(shader, bufSize, &length, infoLog);
-		std::cerr << infoLog << std::endl;
-		delete[] infoLog;
+	if (status == GL_FALSE) {
+		GLint logLength;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+		char* logText = new char[logLength];
+		glGetShaderInfoLog(shader, logLength, NULL, logText);
+
+		if (mode == GL_VERTEX_SHADER) {
+			cout << "Vertex shader compilation error:" << endl;
+		} else {
+			cout << "Fragment shader compilation error:" << endl;
+		}
+		cout << logText << endl;
+		delete [] logText;
+
+		glDeleteShader(shader);
+		throw logText;
 	}
 
-	return (GLboolean)status;
-}
-
-GLboolean Shader::printProgramInfoLog(GLuint program)
-{
-	GLint status;
-	glGetProgramiv(program, GL_LINK_STATUS, &status);
-	if (status == GL_FALSE) std::cerr << "Link Error" << std::endl;
-  
-	GLsizei bufSize;
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH , &bufSize);
-	
-	if (bufSize > 1) {
-		GLchar *infoLog = new GLchar[bufSize];
-		GLsizei length;
-		glGetProgramInfoLog(program, bufSize, &length, infoLog);
-		std::cerr << infoLog << std::endl;
-		delete[] infoLog;
-	}
-
-	return (GLboolean)status;
+	return shader;
 }
