@@ -31,12 +31,12 @@ public:
 public:
 	RenderManager();
 
-	void init();
+	void init(int shadowMapSize);
 	void addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices);
 	void removeObject(const QString& object_name);
 	void renderAll();
 	void render(const QString& object_name);
-	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir);
+	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix);
 
 private:
 	GLuint loadTexture(const QString& filename);

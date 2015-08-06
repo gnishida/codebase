@@ -64,7 +64,7 @@ void GeometryObject::createVAO() {
 RenderManager::RenderManager() {
 }
 
-void RenderManager::init() {
+void RenderManager::init(int shadowMapSize) {
 	// init glew
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
@@ -81,7 +81,7 @@ void RenderManager::init() {
 	GLuint texId;
 	glGenTextures(1, &texId);
 
-	shadow.initShadow(program, 4096, 4096);
+	shadow.init(program, shadowMapSize, shadowMapSize);
 }
 
 void RenderManager::addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices) {
@@ -150,8 +150,8 @@ void RenderManager::render(const QString& object_name) {
 	}
 }
 
-void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir) {
-	shadow.makeShadowMap(glWidget3D, light_dir);
+void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix) {
+	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
 
 
