@@ -76,6 +76,86 @@ void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const 
 	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), glm::vec3(1, 1, 1), t4));
 }
 
+void drawBox(float length_x, float length_y, float length_z, glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	glm::vec4 p1(-length_x * 0.5, -length_y * 0.5, -length_z * 0.5, 1);
+	glm::vec4 p2(length_x * 0.5, -length_y * 0.5, -length_z * 0.5, 1);
+	glm::vec4 p3(length_x * 0.5, length_y * 0.5, -length_z * 0.5, 1);
+	glm::vec4 p4(-length_x * 0.5, length_y * 0.5, -length_z * 0.5, 1);
+	glm::vec4 p5(-length_x * 0.5, -length_y * 0.5, length_z * 0.5, 1);
+	glm::vec4 p6(length_x * 0.5, -length_y * 0.5, length_z * 0.5, 1);
+	glm::vec4 p7(length_x * 0.5, length_y * 0.5, length_z * 0.5, 1);
+	glm::vec4 p8(-length_x * 0.5, length_y * 0.5, length_z * 0.5, 1);
+	glm::vec4 n1(-1, 0, 0, 0);
+	glm::vec4 n2(1, 0, 0, 0);
+	glm::vec4 n3(0, -1, 0, 0);
+	glm::vec4 n4(0, 1, 0, 0);
+	glm::vec4 n5(0, 0, -1, 0);
+	glm::vec4 n6(0, 0, 1, 0);
+
+	p1 = mat * p1;
+	p2 = mat * p2;
+	p3 = mat * p3;
+	p4 = mat * p4;
+	p5 = mat * p5;
+	p6 = mat * p6;
+	p7 = mat * p7;
+	p8 = mat * p8;
+	n1 = mat * n1;
+	n2 = mat * n2;
+	n3 = mat * n3;
+	n4 = mat * n4;
+	n5 = mat * n5;
+	n6 = mat * n6;
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n5), color));
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n5), color));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n5), color));
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n5), color));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n5), color));
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n5), color));
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n3), color));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n3), color));
+	vertices.push_back(Vertex(glm::vec3(p6), glm::vec3(n3), color));
+
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n3), color));
+	vertices.push_back(Vertex(glm::vec3(p6), glm::vec3(n3), color));
+	vertices.push_back(Vertex(glm::vec3(p5), glm::vec3(n3), color));
+
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+	vertices.push_back(Vertex(glm::vec3(p7), glm::vec3(n2), color));
+
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+	vertices.push_back(Vertex(glm::vec3(p7), glm::vec3(n2), color));
+	vertices.push_back(Vertex(glm::vec3(p6), glm::vec3(n2), color));
+
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n4), color));
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n4), color));
+	vertices.push_back(Vertex(glm::vec3(p8), glm::vec3(n4), color));
+
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n4), color));
+	vertices.push_back(Vertex(glm::vec3(p8), glm::vec3(n4), color));
+	vertices.push_back(Vertex(glm::vec3(p7), glm::vec3(n4), color));
+
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n1), color));
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+	vertices.push_back(Vertex(glm::vec3(p5), glm::vec3(n1), color));
+
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n1), color));
+	vertices.push_back(Vertex(glm::vec3(p5), glm::vec3(n1), color));
+	vertices.push_back(Vertex(glm::vec3(p8), glm::vec3(n1), color));
+
+	vertices.push_back(Vertex(glm::vec3(p5), glm::vec3(n6), color));
+	vertices.push_back(Vertex(glm::vec3(p6), glm::vec3(n6), color));
+	vertices.push_back(Vertex(glm::vec3(p7), glm::vec3(n6), color));
+
+	vertices.push_back(Vertex(glm::vec3(p5), glm::vec3(n6), color));
+	vertices.push_back(Vertex(glm::vec3(p7), glm::vec3(n6), color));
+	vertices.push_back(Vertex(glm::vec3(p8), glm::vec3(n6), color));
+}
+
 void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 	int stacks = 6;
