@@ -201,9 +201,45 @@ void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std:
 }
 
 /**
- * 高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
+ * Y軸方向に高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
  */
-void drawCylinder(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+void drawCylinderY(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	int slices = 12;
+
+	float phi = atan2(radius1 - radius2, h);
+
+	for (int i = 0; i < slices; ++i) {
+		float theta1 = M_PI * 2.0 * (float)i / slices;
+		float theta2 = M_PI * 2.0 * (float)(i + 1) / slices;
+
+		glm::vec4 p1(cosf(theta1) * radius1, 0, sinf(theta1) * radius1, 1);
+		glm::vec4 p2(cosf(theta2) * radius1, 0, sinf(theta2) * radius1, 1);
+		glm::vec4 p3(cosf(theta2) * radius2, h, sinf(theta2) * radius2, 1);
+		glm::vec4 p4(cosf(theta1) * radius2, h, sinf(theta1) * radius2, 1);
+		glm::vec4 n1(cosf(theta1) * cosf(phi), sinf(phi), sinf(theta1) * cosf(phi), 0);
+		glm::vec4 n2(cosf(theta2) * cosf(phi), sinf(phi), sinf(theta2) * cosf(phi), 0);
+
+		p1 = mat * p1;
+		p2 = mat * p2;
+		p3 = mat * p3;
+		p4 = mat * p4;
+		n1 = mat * n1;
+		n2 = mat * n2;
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n1), color));
+	}
+}
+
+/**
+ * Z軸方向に高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
+ */
+void drawCylinderZ(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 
 	float phi = atan2(radius1 - radius2, h);
@@ -236,10 +272,13 @@ void drawCylinder(float radius1, float radius2, float h, const glm::vec3& color,
 	}
 }
 
+/**
+ * Z軸方向に、指定された長さ、色、半径の矢印を描画する。
+ */
 void drawArrow(float radius, float length, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
-	drawCylinder(radius, radius, length - radius * 4, color, mat, vertices);
+	drawCylinderZ(radius, radius, length - radius * 4, color, mat, vertices);
 	glm::mat4 m = glm::translate(mat, glm::vec3(0, 0, length - radius * 4));
-	drawCylinder(radius * 2, 0, radius * 4, color, m, vertices);
+	drawCylinderZ(radius * 2, 0, radius * 4, color, m, vertices);
 }
 
 void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vertex>& vertices) {
