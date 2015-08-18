@@ -7,7 +7,8 @@ class Shader
 public:
 	Shader() {}
 
-	uint createProgram(const char *vertex_source, const char* fragment_source);
+	uint createProgram(const std::string& vertex_file, const std::string& fragment_file);
+	uint createProgram(const std::string& vertex_file, const std::string& geometry_file, const std::string& fragment_file);
 
 private:
 	void loadTextFile(const std::string& filename, std::string& str);
@@ -16,6 +17,7 @@ private:
 private:
 	GLuint program;
 	GLuint vertex_shader;
+	GLuint geometry_shader;
 	GLuint fragment_shader;
 };
 

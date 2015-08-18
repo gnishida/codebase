@@ -16,7 +16,7 @@ using namespace std;
  * @param fragment_file		frament shader file
  * @return					program id
  */
-uint Shader::createProgram(const char *vertex_file, const char* fragment_file) {
+uint Shader::createProgram(const string& vertex_file, const string& fragment_file) {
 	std::string source;
 	loadTextFile(vertex_file, source);
 	vertex_shader = compileShader(source, GL_VERTEX_SHADER);
@@ -41,6 +41,45 @@ uint Shader::createProgram(const char *vertex_file, const char* fragment_file) {
 
 		stringstream ss;
 		ss << "Error linking program:" << endl << logText << endl;
+		delete [] logText;
+
+		glDeleteProgram(program);
+		throw runtime_error(ss.str());
+	}
+
+	return program;
+}
+
+uint Shader::createProgram(const string& vertex_file, const string& geometry_file, const string& fragment_file) {
+	std::string source;
+	loadTextFile(vertex_file, source);
+	vertex_shader = compileShader(source, GL_VERTEX_SHADER);
+
+	loadTextFile(geometry_file, source);
+	geometry_shader = compileShader(source, GL_GEOMETRY_SHADER);
+
+	loadTextFile(fragment_file, source);
+	fragment_shader = compileShader(source,GL_FRAGMENT_SHADER);
+
+	// create program
+	program = glCreateProgram();
+	glAttachShader(program, vertex_shader);
+	glAttachShader(program, geometry_shader);
+	glAttachShader(program, fragment_shader);
+	glBindFragDataLocation(program, 0, "outputF");
+	glLinkProgram(program);
+	
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE) {
+		GLint logLength;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		char* logText = new char[logLength];
+		glGetProgramInfoLog(program, logLength, NULL, logText);
+
+		stringstream ss;
+		ss << "Error linking program:" << endl << logText << endl;
+		cout << "Error linking program:" << endl << logText << endl;
 		delete [] logText;
 
 		glDeleteProgram(program);
@@ -117,6 +156,8 @@ GLuint Shader::compileShader(const string& source, GLuint mode) {
 
 		if (mode == GL_VERTEX_SHADER) {
 			cout << "Vertex shader compilation error:" << endl;
+		} else if (mode == GL_GEOMETRY_SHADER) {
+			cout << "Geometry shader compilation error:" << endl;
 		} else {
 			cout << "Fragment shader compilation error:" << endl;
 		}

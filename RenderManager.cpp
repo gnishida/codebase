@@ -64,7 +64,7 @@ void GeometryObject::createVAO() {
 RenderManager::RenderManager() {
 }
 
-void RenderManager::init(int shadowMapSize) {
+void RenderManager::init(const std::string& vertex_file, const std::string& geometry_file, const std::string& fragment_file, int shadowMapSize) {
 	// init glew
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
@@ -73,7 +73,11 @@ void RenderManager::init(int shadowMapSize) {
 
 	// load shaders
 	Shader shader;
-	program = shader.createProgram("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+	if (geometry_file.empty()) {
+		program = shader.createProgram(vertex_file, fragment_file);
+	} else {
+		program = shader.createProgram(vertex_file, geometry_file, fragment_file);
+	}
 	glUseProgram(program);
 
 	// ダミーのtexture idを作成する。
@@ -120,13 +124,13 @@ void RenderManager::removeObject(const QString& object_name) {
 	objects.remove(object_name);
 }
 
-void RenderManager::renderAll() {
+void RenderManager::renderAll(bool wireframe) {
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		render(it.key());
+		render(it.key(), wireframe);
 	}
 }
 
-void RenderManager::render(const QString& object_name) {
+void RenderManager::render(const QString& object_name, bool wireframe) {
 	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		GLuint texId = it.key();
 		
@@ -136,10 +140,16 @@ void RenderManager::render(const QString& object_name) {
 		if (texId > 0) {
 			// テクスチャなら、バインドする
 			glBindTexture(GL_TEXTURE_2D, texId);
-			glUniform1i(glGetUniformLocation(program, "mode"), 2);
-			glUniform1i(glGetUniformLocation (program, "tex0"), 0);
+			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 1);
+			glUniform1i(glGetUniformLocation(program, "tex0"), 0);
 		} else {
-			glUniform1i(glGetUniformLocation(program, "mode"), 1);
+			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 0);
+		}
+
+		if (wireframe) {
+			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 1);
+		} else {
+			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 0);
 		}
 
 		// 描画
