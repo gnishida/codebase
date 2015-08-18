@@ -342,10 +342,8 @@ void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vert
 	drawArrow(radius, length, glm::vec3(0, 1, 0), mat, vertices);
 }
 
-void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& color, std::vector<Vertex>& vertices) {
+void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& color, std::vector<Vertex>& vertices, int slices) {
 	if (points.size() <= 1) return;
-
-	int slices = 12;
 
 	glm::mat4 modelMat1, modelMat2;
 	glm::vec3 x_dir, y_dir, z_dir, x_dir2, y_dir2, z_dir2;
@@ -413,13 +411,13 @@ void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& col
 			float theta = (float)k / slices * M_PI * 2.0f;
 
 			glm::vec4 p(cosf(theta) * radius, 0, -sinf(theta) * radius, 1);
-			glm::vec4 n(cosf(theta), 0, -sinf(theta), 0);
 
 			glm::vec3 p1 = glm::vec3(modelMat1 * p) + points[i + 1] - points[i];
 			glm::vec3 p2 = glm::vec3(modelMat2 * p);
-
-			circle_points2[k] = (p1 + p2) * 0.5f;
-			circle_normals2[k] = glm::vec3((modelMat1 * n + modelMat2 * n) * 0.5f);
+			glm::vec3 pp = (p1 + p2) * 0.5f;
+			
+			circle_normals2[k] = glm::normalize(pp - points[i + 1]);
+			circle_points2[k] = circle_normals2[k] * radius + points[i + 1];
 		}
 
 		for (int k = 0; k < slices; ++k) {
@@ -435,6 +433,7 @@ void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& col
 
 		modelMat1 = modelMat2;
 		circle_points = circle_points2;
+		circle_normals = circle_normals2;
 		x_dir = x_dir2; y_dir = y_dir2; z_dir = z_dir2;
 	}
 }
