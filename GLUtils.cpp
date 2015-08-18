@@ -200,12 +200,62 @@ void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std:
 	}
 }
 
+void drawEllipsoid(float r1, float r2, float r3, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	int slices = 32;
+	int stacks = 16;
+
+	for (int i = 0; i < stacks; ++i) {
+		float phi1 = M_PI * (float)i / stacks - M_PI * 0.5;
+		float phi2 = M_PI * (float)(i + 1) / stacks - M_PI * 0.5;
+
+		for (int j = 0; j < slices; ++j) {
+			float theta1 = M_PI * 2.0 * (float)j / slices;
+			float theta2 = M_PI * 2.0 * (float)(j + 1) / slices;
+
+			/*
+			float x_base1 = cosf(theta1) * r1;
+			float y_base1 = sinf(theta1) * r2;
+			float r_base1 = sqrt(x_base1 * x_base1 + y_base1 * y_base1);
+
+			float x_base2 = cosf(theta2) * r1;
+			float y_base2 = sinf(theta2) * r2;
+			float r_base2 = sqrt(x_base2 * x_base2 + y_base2 * y_base2);
+			*/
+
+			glm::vec4 p1(cosf(phi1) * cosf(theta1) * r1, cosf(phi1) * sinf(theta1) * r2, sinf(phi1) * r3, 1);
+			glm::vec4 p2(cosf(phi1) * cosf(theta2) * r1, cosf(phi1) * sinf(theta2) * r2, sinf(phi1) * r3, 1);
+			glm::vec4 p3(cosf(phi2) * cosf(theta2) * r1, cosf(phi2) * sinf(theta2) * r2, sinf(phi2) * r3, 1);
+			glm::vec4 p4(cosf(phi2) * cosf(theta1) * r1, cosf(phi2) * sinf(theta1) * r2, sinf(phi2) * r3, 1);
+
+			glm::vec4 n1(cosf(phi1) * cosf(theta1), cosf(phi1) * sinf(theta1), sinf(phi1), 0);
+			glm::vec4 n2(cosf(phi1) * cosf(theta2), cosf(phi1) * sinf(theta2), sinf(phi1), 0);
+			glm::vec4 n3(cosf(phi2) * cosf(theta2), cosf(phi2) * sinf(theta2), sinf(phi2), 0);
+			glm::vec4 n4(cosf(phi2) * cosf(theta1), cosf(phi2) * sinf(theta1), sinf(phi2), 0);
+
+			p1 = mat * p1;
+			p2 = mat * p2;
+			p3 = mat * p3;
+			p4 = mat * p4;
+			n1 = mat * n1;
+			n2 = mat * n2;
+			n3 = mat * n3;
+			n4 = mat * n4;
+
+			vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+			vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+			vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n3), color));
+
+			vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+			vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n3), color));
+			vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n4), color));
+		}
+	}
+}
+
 /**
  * Y軸方向に高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
  */
-void drawCylinderY(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
-	int slices = 12;
-
+void drawCylinderY(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices, int slices) {
 	float phi = atan2(radius1 - radius2, h);
 
 	for (int i = 0; i < slices; ++i) {
@@ -239,9 +289,7 @@ void drawCylinderY(float radius1, float radius2, float h, const glm::vec3& color
 /**
  * Z軸方向に高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
  */
-void drawCylinderZ(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
-	int slices = 12;
-
+void drawCylinderZ(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices, int slices) {
 	float phi = atan2(radius1 - radius2, h);
 
 	for (int i = 0; i < slices; ++i) {
@@ -292,6 +340,103 @@ void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vert
 
 	// Z軸を描画
 	drawArrow(radius, length, glm::vec3(0, 1, 0), mat, vertices);
+}
+
+void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& color, std::vector<Vertex>& vertices) {
+	if (points.size() <= 1) return;
+
+	int slices = 12;
+
+	glm::mat4 modelMat1, modelMat2;
+	glm::vec3 x_dir, y_dir, z_dir, x_dir2, y_dir2, z_dir2;
+	std::vector<glm::vec3> circle_points(slices);
+	std::vector<glm::vec3> circle_normals(slices);
+
+	{
+		// 最初の円筒形の、ローカル座標系を計算
+		modelMat1 = glm::translate(modelMat1, glm::vec3(points[0]));
+		y_dir = glm::normalize(points[1] - points[0]);
+		z_dir = glm::normalize(glm::cross(points[2] - points[1], y_dir));
+		x_dir = glm::normalize(glm::cross(y_dir, z_dir));
+		z_dir = glm::normalize(glm::cross(x_dir, y_dir));
+
+		// ローカル座標系への変換行列を計算		
+		modelMat1[0].x = x_dir.x; modelMat1[0].y = x_dir.y; modelMat1[0].z = x_dir.z;
+		modelMat1[1].x = y_dir.x; modelMat1[1].y = y_dir.y; modelMat1[1].z = y_dir.z;
+		modelMat1[2].x = z_dir.x; modelMat1[2].y = z_dir.y; modelMat1[2].z = z_dir.z;
+	}
+
+	// 円周の頂点座標を計算
+	for (int k = 0; k < slices; ++k) {
+		float theta = (float)k / slices * M_PI * 2.0f;
+
+		glm::vec4 p(cosf(theta) * radius, 0, -sinf(theta) * radius, 1);
+		glm::vec4 n(cosf(theta), 0, -sinf(theta), 0);
+		p = modelMat1 * p;
+		n = modelMat1 * n;
+		circle_points[k] = glm::vec3(p);
+		circle_normals[k] = glm::vec3(n);
+	}
+
+	for (int i = 0; i < points.size() - 1; ++i) {
+		modelMat2 = glm::translate(glm::mat4(), glm::vec3(points[i + 1]));
+
+		if (i < points.size() - 2) {
+			// この円筒形の、ローカル座標系を計算
+			y_dir2 = glm::normalize(points[i + 2] - points[i + 1]);
+			if (i < points.size() - 3) {
+				z_dir2 = glm::normalize(glm::cross(y_dir2, points[i + 1] - points[i]));
+				if (glm::dot(z_dir, z_dir2) < 0) {
+					z_dir2 = -z_dir2;
+				}
+			} else {
+				z_dir2 = z_dir;
+			}
+			x_dir2 = glm::normalize(glm::cross(y_dir2, z_dir2));
+			z_dir2 = glm::normalize(glm::cross(x_dir2, y_dir2));
+
+			// ローカル座標系への変換行列を計算		
+			modelMat2[0].x = x_dir2.x; modelMat2[0].y = x_dir2.y; modelMat2[0].z = x_dir2.z;
+			modelMat2[1].x = y_dir2.x; modelMat2[1].y = y_dir2.y; modelMat2[1].z = y_dir2.z;
+			modelMat2[2].x = z_dir2.x; modelMat2[2].y = z_dir2.y; modelMat2[2].z = z_dir2.z;
+		} else {
+			modelMat2 = glm::translate(glm::mat4(), points[i + 1] - points[i]) * modelMat1;
+			//modelMat2 = glm::translate(modelMat1, points[i + 1] - points[i]);
+		}
+
+
+		float h = glm::length(points[i + 1] - points[i]);
+		std::vector<glm::vec3> circle_points2(slices);
+		std::vector<glm::vec3> circle_normals2(slices);
+
+		for (int k = 0; k < slices; ++k) {
+			float theta = (float)k / slices * M_PI * 2.0f;
+
+			glm::vec4 p(cosf(theta) * radius, 0, -sinf(theta) * radius, 1);
+			glm::vec4 n(cosf(theta), 0, -sinf(theta), 0);
+
+			glm::vec3 p1 = glm::vec3(modelMat1 * p) + points[i + 1] - points[i];
+			glm::vec3 p2 = glm::vec3(modelMat2 * p);
+
+			circle_points2[k] = (p1 + p2) * 0.5f;
+			circle_normals2[k] = glm::vec3((modelMat1 * n + modelMat2 * n) * 0.5f);
+		}
+
+		for (int k = 0; k < slices; ++k) {
+			vertices.push_back(Vertex(glm::vec3(circle_points[k]), glm::vec3(circle_normals[k]), color));
+			vertices.push_back(Vertex(glm::vec3(circle_points[(k+1)%slices]), glm::vec3(circle_normals[(k+1)%slices]), color));
+			vertices.push_back(Vertex(glm::vec3(circle_points2[(k+1)%slices]), glm::vec3(circle_normals2[(k+1)%slices]), color));
+
+			vertices.push_back(Vertex(glm::vec3(circle_points[k]), glm::vec3(circle_normals[k]), color));
+			vertices.push_back(Vertex(glm::vec3(circle_points2[(k+1)%slices]), glm::vec3(circle_normals2[(k+1)%slices]), color));
+			vertices.push_back(Vertex(glm::vec3(circle_points2[k]), glm::vec3(circle_normals2[k]), color));
+		}
+
+
+		modelMat1 = modelMat2;
+		circle_points = circle_points2;
+		x_dir = x_dir2; y_dir = y_dir2; z_dir = z_dir2;
+	}
 }
 
 float deg2rad(float degree) {
