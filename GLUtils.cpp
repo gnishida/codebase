@@ -330,16 +330,16 @@ void drawArrow(float radius, float length, const glm::vec3& color, const glm::ma
 }
 
 void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vertex>& vertices) {
-	// X軸を描画
+	// X軸を描画（赤色）
 	glm::mat4 m1 = glm::rotate(mat, deg2rad(90), glm::vec3(0, 1, 0));
-	drawArrow(radius, length, glm::vec3(0, 0, 1), m1, vertices);
+	drawArrow(radius, length, glm::vec3(1, 0, 0), m1, vertices);
 
-	// Y軸を描画
+	// Y軸を描画（緑色）
 	glm::mat4 m2 = glm::rotate(mat, deg2rad(-90), glm::vec3(1, 0, 0));
-	drawArrow(radius, length, glm::vec3(1, 0, 0), m2, vertices);
+	drawArrow(radius, length, glm::vec3(0, 1, 0), m2, vertices);
 
-	// Z軸を描画
-	drawArrow(radius, length, glm::vec3(0, 1, 0), mat, vertices);
+	// Z軸を描画 (青色）
+	drawArrow(radius, length, glm::vec3(0, 0, 1), mat, vertices);
 }
 
 void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& color, std::vector<Vertex>& vertices, int slices) {
