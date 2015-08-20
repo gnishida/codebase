@@ -76,6 +76,33 @@ void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const 
 	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), glm::vec3(1, 1, 1), t4));
 }
 
+void drawPolygon(const std::vector<glm::vec3>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	glm::vec4 p1(points.back(), 1);
+	p1 = mat * p1;
+	glm::vec4 p2(points[0], 1);
+	p2 = mat * p2;
+
+	glm::vec3 normal;
+	bool normal_computed = false;
+
+	for (int i = 0; i < points.size() - 2; ++i) {
+		glm::vec4 p3(points[i + 1], 1);
+		p3 = mat * p3;
+
+		if (!normal_computed) {
+			normal = glm::cross(glm::vec3(p2 - p1), glm::vec3(p3 - p1));
+			normal = glm::vec3(mat * glm::vec4(normal, 0));
+			normal_computed = true;
+		}
+
+		vertices.push_back(Vertex(glm::vec3(p1), normal, color));
+		vertices.push_back(Vertex(glm::vec3(p2), normal, color));
+		vertices.push_back(Vertex(glm::vec3(p3), normal, color));
+
+		p2 = p3;
+	}
+}
+
 void drawBox(float length_x, float length_y, float length_z, glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	glm::vec4 p1(-length_x * 0.5, -length_y * 0.5, -length_z * 0.5, 1);
 	glm::vec4 p2(length_x * 0.5, -length_y * 0.5, -length_z * 0.5, 1);
@@ -249,6 +276,40 @@ void drawEllipsoid(float r1, float r2, float r3, const glm::vec3& color, const g
 			vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n3), color));
 			vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n4), color));
 		}
+	}
+}
+
+/**
+ * X軸方向に高さ h、底面の半径 r1、上面の半径 r2の円錐を描画する。
+ */
+void drawCylinderX(float radius1, float radius2, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices, int slices) {
+	float phi = atan2(radius1 - radius2, h);
+
+	for (int i = 0; i < slices; ++i) {
+		float theta1 = M_PI * 2.0 * (float)i / slices;
+		float theta2 = M_PI * 2.0 * (float)(i + 1) / slices;
+
+		glm::vec4 p1(0, cosf(theta1) * radius1, sinf(theta1) * radius1, 1);
+		glm::vec4 p2(0, cosf(theta2) * radius1, sinf(theta2) * radius1, 1);
+		glm::vec4 p3(h, cosf(theta2) * radius2, sinf(theta2) * radius2, 1);
+		glm::vec4 p4(h, cosf(theta1) * radius2, sinf(theta1) * radius2, 1);
+		glm::vec4 n1(sinf(phi), cosf(theta1) * cosf(phi), sinf(theta1) * cosf(phi), 0);
+		glm::vec4 n2(sinf(phi), cosf(theta2) * cosf(phi), sinf(theta2) * cosf(phi), 0);
+
+		p1 = mat * p1;
+		p2 = mat * p2;
+		p3 = mat * p3;
+		p4 = mat * p4;
+		n1 = mat * n1;
+		n2 = mat * n2;
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+
+		vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n1), color));
+		vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n2), color));
+		vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n1), color));
 	}
 }
 
