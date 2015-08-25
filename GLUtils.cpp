@@ -143,7 +143,7 @@ void drawBox(float length_x, float length_y, float length_z, glm::vec3& color, c
 	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n5), color));
 
 	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n3), color));
-	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n3), color));
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n3), color));
 	vertices.push_back(Vertex(glm::vec3(p6), glm::vec3(n3), color));
 
 	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n3), color));
