@@ -499,6 +499,27 @@ void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& col
 	}
 }
 
+void drawCurvilinearMesh(int numX, int numY, std::vector<glm::vec3>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	for (int i = 0; i < numY - 1; ++i) {
+		for (int j = 0; j < numX - 1; ++j) {
+			glm::vec3 p1 = glm::vec3(mat * glm::vec4(points[i * numX + j], 1));
+			glm::vec3 p2 = glm::vec3(mat * glm::vec4(points[i * numX + j + 1], 1));
+			glm::vec3 p3 = glm::vec3(mat * glm::vec4(points[(i + 1) * numX + j + 1], 1));
+			glm::vec3 p4 = glm::vec3(mat * glm::vec4(points[(i + 1) * numX + j], 1));
+
+			glm::vec3 normal = glm::cross(p2 - p1, p3 - p1);
+
+			vertices.push_back(Vertex(p1, normal, color));
+			vertices.push_back(Vertex(p2, normal, color));
+			vertices.push_back(Vertex(p3, normal, color));
+
+			vertices.push_back(Vertex(p1, normal, color));
+			vertices.push_back(Vertex(p3, normal, color));
+			vertices.push_back(Vertex(p4, normal, color));
+		}
+	}
+}
+
 float deg2rad(float degree) {
 	return degree * M_PI / 180.0;
 }

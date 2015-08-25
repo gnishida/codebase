@@ -20,6 +20,7 @@ void drawCylinderZ(float radius1, float radius2, float h, const glm::vec3& color
 void drawArrow(float radius, float length, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawAxes(float radius, float length, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawTube(std::vector<glm::vec3>& points, float radius, const glm::vec3& color, std::vector<Vertex>& vertices, int slices = 12);
+void drawCurvilinearMesh(int numX, int numY, std::vector<glm::vec3>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 
 float deg2rad(float degree);
 
