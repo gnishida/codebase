@@ -37,7 +37,7 @@ public:
 	void renderAll(bool wireframe = false);
 	void render(const QString& object_name, bool wireframe = false);
 	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix);
-	void intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix);
+	std::vector<QString> intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix);
 
 private:
 	GLuint loadTexture(const QString& filename);

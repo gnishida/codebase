@@ -164,9 +164,9 @@ void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& lig
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
 
-void RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
+std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
 	float min_z = (std::numeric_limits<float>::max)();
-	Vertex* min_v;
+	QString intersectedObject;
 	bool intersected = false;
 
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
@@ -184,7 +184,7 @@ void RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMat
 					if (intPt.z < min_z && intPt.z > 0) {
 						intersected = true;
 						min_z = intPt.z;
-						min_v = &it2->vertices[vi];
+						intersectedObject = it.key();
 					}
 				}
 
@@ -197,11 +197,23 @@ void RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMat
 		}
 	}
 
+	std::vector<QString> ret;
+
 	if (intersected) {
-		min_v->color = glm::vec3(1, 0, 0);
-		(++min_v)->color = glm::vec3(1, 0, 0);
-		(++min_v)->color = glm::vec3(1, 0, 0);
+		ret.push_back(intersectedObject);
+
+		for (auto it = objects.begin(); it != objects.end(); ++it) {
+			if (it.key() == intersectedObject) {
+				for (auto it2 = objects[it.key()].begin(); it2 != objects[it.key()].end(); ++it2) {
+					for (int vi = 0; vi < it2->vertices.size(); ++vi) {
+						it2->vertices[vi].color = glm::vec3(1, 0, 0);
+					}
+				}
+			}
+		}
 	}
+
+	return ret;
 }
 
 
