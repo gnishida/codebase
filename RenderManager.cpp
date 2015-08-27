@@ -24,7 +24,7 @@ void GeometryObject::addVertices(const std::vector<Vertex>& vertices) {
  */
 void GeometryObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
-	if (vaoCreated && vaoUpdated) return;
+	//if (vaoCreated && vaoUpdated) return;
 
 	if (vaoCreated) {
 		// 古いVAO, VBOを解放する
@@ -164,6 +164,46 @@ void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& lig
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
 
+void RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
+	float min_z = (std::numeric_limits<float>::max)();
+	Vertex* min_v;
+	bool intersected = false;
+
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		for (auto it2 = objects[it.key()].begin(); it2 != objects[it.key()].end(); ++it2) {
+			for (int vi = 0; vi < it2->vertices.size(); vi += 3) {
+				glm::vec4 p1 = glm::vec4(it2->vertices[vi + 0].position, 1);
+				glm::vec4 p2 = glm::vec4(it2->vertices[vi + 1].position, 1);
+				glm::vec4 p3 = glm::vec4(it2->vertices[vi + 2].position, 1);
+				p1 = mvpMatrix * p1;
+				p2 = mvpMatrix * p2;
+				p3 = mvpMatrix * p3;
+
+				glm::vec3 intPt;
+				if (withinTriangle(p, p1, p2, p3, intPt)) {
+					if (intPt.z < min_z && intPt.z > 0) {
+						intersected = true;
+						min_z = intPt.z;
+						min_v = &it2->vertices[vi];
+					}
+				}
+
+				it2->vertices[vi + 0].color = glm::vec3(1, 1, 1);
+				it2->vertices[vi + 1].color = glm::vec3(1, 1, 1);
+				it2->vertices[vi + 2].color = glm::vec3(1, 1, 1);
+			}
+
+			it2->vaoUpdated = false;
+		}
+	}
+
+	if (intersected) {
+		min_v->color = glm::vec3(1, 0, 0);
+		(++min_v)->color = glm::vec3(1, 0, 0);
+		(++min_v)->color = glm::vec3(1, 0, 0);
+	}
+}
+
 
 GLuint RenderManager::loadTexture(const QString& filename) {
 	QImage img;
@@ -194,3 +234,28 @@ GLuint RenderManager::loadTexture(const QString& filename) {
 	return texture;
 }
 
+bool RenderManager::withinTriangle(const glm::vec2& p, const glm::vec4& a, const glm::vec4& b, const glm::vec4& c, glm::vec3& intPt) {
+	if (a.z < 0 || b.z < 0 || c.z < 0) return false;
+
+	// Compute vectors        
+	glm::vec2 v0 = glm::vec2(c / c.w - a / a.w);
+	glm::vec2 v1 = glm::vec2(b / b.w - a / a.w);
+	glm::vec2 v2 = p - glm::vec2(a / a.w);
+
+	// Compute dot products
+	float dot00 = glm::dot(v0, v0);
+	float dot01 = glm::dot(v0, v1);
+	float dot02 = glm::dot(v0, v2);
+	float dot11 = glm::dot(v1, v1);
+	float dot12 = glm::dot(v1, v2);
+
+	// Compute barycentric coordinates
+	float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+	intPt = glm::vec3(p, a.z + (c.z - a.z) * u + (b.z - a.z) * v);
+
+	// Check if point is in triangle
+	return (u >= 0) && (v >= 0) && (u + v < 1);
+}
