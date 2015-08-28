@@ -9,24 +9,21 @@ GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vert
 
 GeometryObject::GeometryObject() {
 	vaoCreated = false;
-	vaoUpdated = false;
+	vaoOutdated = true;
 	num_vertices = 0;
 }
 
-GeometryObject::GeometryObject(const GeometrySubObject& sub_object) {
+/*GeometryObject::GeometryObject(const GeometrySubObject& sub_object) {
 	this->sub_objects.push_back(sub_object);
 	this->num_vertices = sub_object.vertices.size();
 	vaoCreated = false;
-	vaoUpdated = false;
-}
+	vaoOutdated = true;
+}*/
 
-GeometrySubObject* GeometryObject::addSubObject(const GeometrySubObject& sub_object) {
+void GeometryObject::addSubObject(GeometrySubObject* sub_object) {
 	this->sub_objects.push_back(sub_object);
-	this->num_vertices += sub_object.vertices.size();
-	//this->vertices.insert(this->vertices.end(), vertices.begin(), vertices.end());
-	vaoUpdated = false;
-
-	return &this->sub_objects[this->sub_objects.size() - 1];
+	this->num_vertices += sub_object->vertices.size();
+	vaoOutdated = true;
 }
 
 /**
@@ -34,7 +31,7 @@ GeometrySubObject* GeometryObject::addSubObject(const GeometrySubObject& sub_obj
  */
 void GeometryObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
-	//if (vaoCreated && vaoUpdated) return;
+	//if (vaoCreated && !vaoOutdated) return;
 
 	if (vaoCreated) {
 		// 古いVAO, VBOを解放する
@@ -53,8 +50,8 @@ void GeometryObject::createVAO() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_vertices, NULL, GL_STATIC_DRAW);
 	int offset = 0;
 	for (int i = 0; i < sub_objects.size(); ++i) {
-		glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i].vertices.size(), sub_objects[i].vertices.data());
-		offset += sizeof(Vertex) * sub_objects[i].vertices.size();
+		glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i]->vertices.size(), sub_objects[i]->vertices.data());
+		offset += sizeof(Vertex) * sub_objects[i]->vertices.size();
 	}
 	
 	// configure the attributes in the vao
@@ -73,7 +70,7 @@ void GeometryObject::createVAO() {
 
 	// VAOを作成済み、最新とマークする
 	vaoCreated = true;
-	vaoUpdated = true;
+	vaoOutdated = false;
 }
 
 RenderManager::RenderManager() {
@@ -118,8 +115,10 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 		texId = 0;
 	}
 
-	GeometrySubObject* p = vao_objects[texId].addSubObject(GeometrySubObject(object_name, vertices));
-	name_objects[object_name].push_back(GeometrySubObject(object_name, vertices));
+	GeometrySubObject* gso = new GeometrySubObject(object_name, vertices);
+	vao_objects[texId].addSubObject(gso);
+	vao_objects[texId].vaoOutdated = true;
+	name_objects[object_name].push_back(gso);
 
 	/*
 	if (objects.contains(object_name)) {
@@ -137,12 +136,19 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 void RenderManager::removeObject(const QString& object_name) {
 	name_objects.remove(object_name);
 	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+		bool removed = false;
+		
 		for (int i = 0; i < it->sub_objects.size(); ) {
-			if (it->sub_objects[i].name == object_name) {
+			if (it->sub_objects[i]->name == object_name) {
 				it->sub_objects.erase(it->sub_objects.begin() + i);
+				removed = true;
 			} else {
 				++i;
 			}
+		}
+
+		if (removed) {
+			it->vaoOutdated = true;
 		}
 	}
 
@@ -224,17 +230,15 @@ void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& lig
 std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
 	float min_z = (std::numeric_limits<float>::max)();
 	QString intersectedObject;
+	uint intersectedVao;
 	bool intersected = false;
 
-	for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
-		for (int i = 0; i < it->size(); ++i) {
-			for (int vi = 0; vi < it->at(i).vertices.size(); vi += 3) {
-				int hoge2 = it->size();
-				int hoge = it->at(i).vertices.size();
-
-				glm::vec4 p1 = glm::vec4(it->at(i).vertices[vi + 0].position, 1);
-				glm::vec4 p2 = glm::vec4(it->at(i).vertices[vi + 1].position, 1);
-				glm::vec4 p3 = glm::vec4(it->at(i).vertices[vi + 2].position, 1);
+	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+		for (int i = 0; i < it->sub_objects.size(); ++i) {
+			for (int vi = 0; vi < it->sub_objects[i]->vertices.size(); vi += 3) {
+				glm::vec4 p1 = glm::vec4(it->sub_objects[i]->vertices[vi + 0].position, 1);
+				glm::vec4 p2 = glm::vec4(it->sub_objects[i]->vertices[vi + 1].position, 1);
+				glm::vec4 p3 = glm::vec4(it->sub_objects[i]->vertices[vi + 2].position, 1);
 				p1 = mvpMatrix * p1;
 				p2 = mvpMatrix * p2;
 				p3 = mvpMatrix * p3;
@@ -244,13 +248,14 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 					if (intPt.z < min_z && intPt.z > 0) {
 						intersected = true;
 						min_z = intPt.z;
-						intersectedObject = it.key();
+						intersectedObject = it->sub_objects[i]->name;
+						intersectedVao = it.key();
 					}
 				}
 
-				it->at(i).vertices[vi + 0].color = glm::vec3(1, 1, 1);
-				it->at(i).vertices[vi + 1].color = glm::vec3(1, 1, 1);
-				it->at(i).vertices[vi + 2].color = glm::vec3(1, 1, 1);
+				it->sub_objects[i]->vertices[vi + 0].color = glm::vec3(1, 1, 1);
+				it->sub_objects[i]->vertices[vi + 1].color = glm::vec3(1, 1, 1);
+				it->sub_objects[i]->vertices[vi + 2].color = glm::vec3(1, 1, 1);
 			}
 		}
 	}
@@ -258,14 +263,16 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 	std::vector<QString> ret;
 
 	if (intersected) {
-		std::cout << intersectedObject.toUtf8().data() << std::endl;
 		ret.push_back(intersectedObject);
+
+		// 選択されたオブジェクトを含むvaoをoutdatedにする
+		vao_objects[intersectedVao].vaoOutdated = true;
 
 		for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
 			if (it.key() == intersectedObject) {
 				for (int i = 0; i < name_objects[it.key()].size(); ++i) {
-					for (int vi = 0; vi < name_objects[it.key()][i].vertices.size(); ++vi) {
-						name_objects[it.key()][i].vertices[vi].color = glm::vec3(1, 0, 0);
+					for (int vi = 0; vi < name_objects[it.key()][i]->vertices.size(); ++vi) {
+						name_objects[it.key()][i]->vertices[vi].color = glm::vec3(1, 0, 0);
 					}
 				}
 			}

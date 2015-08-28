@@ -20,15 +20,15 @@ class GeometryObject {
 public:
 	GLuint vao;
 	GLuint vbo;
-	std::vector<GeometrySubObject> sub_objects;
+	std::vector<GeometrySubObject*> sub_objects;
 	int num_vertices;
 	bool vaoCreated;
-	bool vaoUpdated;
+	bool vaoOutdated;
 
 public:
 	GeometryObject();
-	GeometryObject(const GeometrySubObject& sub_object);
-	GeometrySubObject* addSubObject(const GeometrySubObject& sub_object);
+	//GeometryObject(GeometrySubObject* sub_object);
+	void addSubObject(GeometrySubObject* sub_object);
 	void createVAO();
 };
 
@@ -36,7 +36,7 @@ class RenderManager {
 public:
 	GLuint program;
 	QMap<GLuint, GeometryObject> vao_objects;
-	QMap<QString, std::vector<GeometrySubObject> > name_objects;
+	QMap<QString, std::vector<GeometrySubObject*> > name_objects;
 	QMap<QString, GLuint> textures;
 	ShadowMapping shadow;
 
