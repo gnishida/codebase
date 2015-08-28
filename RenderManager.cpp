@@ -220,7 +220,7 @@ void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& lig
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
 
-std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
+std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
 	float min_z = (std::numeric_limits<float>::max)();
 	QString intersectedObject;
 	uint intersectedVao;
@@ -253,10 +253,10 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 		}
 	}
 
-	std::vector<QString> ret;
+	std::vector<GeometryObject*> ret;
 
 	if (intersected) {
-		ret.push_back(intersectedObject);
+		ret.push_back(&name_objects[intersectedObject]);
 
 		// 選択されたオブジェクトを含むvaoをoutdatedにする
 		vao_objects[intersectedVao].vaoOutdated = true;
