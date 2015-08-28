@@ -4,7 +4,31 @@
 #include <QImage>
 #include <QGLWidget>
 
-GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices) : name(name), vertices(vertices) {
+GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices) : name(name), vertices(vertices), updated(true) {
+}
+
+void GeometryObject::select() {
+	selected = true;
+	for (int i = 0; i < sub_objects.size(); ++i) {
+		for (int vi = 0; vi < sub_objects[i]->vertices.size(); ++vi) {
+			// 赤色に塗る (To bi fixed!)
+			sub_objects[i]->vertices[vi].color = glm::vec3(1, 0, 0);
+		}
+		sub_objects[i]->updated = true;
+	}
+}
+
+void GeometryObject::unselect() {
+	if (!selected) return;
+
+	selected = false;
+	for (int i = 0; i < sub_objects.size(); ++i) {
+		for (int vi = 0; vi < sub_objects[i]->vertices.size(); ++vi) {
+			// 白色に塗る (To bi fixed!)
+			sub_objects[i]->vertices[vi].color = glm::vec3(1, 1, 1);
+		}
+		sub_objects[i]->updated = true;
+	}
 }
 
 VaoObject::VaoObject() {
@@ -24,45 +48,47 @@ void VaoObject::addSubObject(GeometrySubObject* sub_object) {
  */
 void VaoObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
-	//if (vaoCreated && !vaoOutdated) return;
+	if (vaoCreated && !vaoOutdated) return;
 
-	if (vaoCreated) {
-		// 古いVAO, VBOを解放する
-		glDeleteBuffers(1, &vbo);
-		glDeleteVertexArrays(1, &vao);
+	if (!vaoCreated) {
+		// create vao and bind it
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		// create VBO and tranfer the vertices data to GPU buffer
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_vertices, NULL, GL_DYNAMIC_DRAW);
+
+		// configure the attributes in the vao
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+
+		vaoCreated = true;
+	} else {
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	}
 
-	// create vao and bind it
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// create VBO and tranfer the vertices data to GPU buffer
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_vertices, NULL, GL_STATIC_DRAW);
 	int offset = 0;
 	for (int i = 0; i < sub_objects.size(); ++i) {
-		glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i]->vertices.size(), sub_objects[i]->vertices.data());
+		if (sub_objects[i]->updated) {
+			glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i]->vertices.size(), sub_objects[i]->vertices.data());
+		}
+		sub_objects[i]->updated = false;
 		offset += sizeof(Vertex) * sub_objects[i]->vertices.size();
 	}
-	
-	// configure the attributes in the vao
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
 
 	// unbind the vao
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// VAOを作成済み、最新とマークする
-	vaoCreated = true;
 	vaoOutdated = false;
 }
 
@@ -245,10 +271,6 @@ std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p,
 						intersectedVao = it.key();
 					}
 				}
-
-				it->sub_objects[i]->vertices[vi + 0].color = glm::vec3(1, 1, 1);
-				it->sub_objects[i]->vertices[vi + 1].color = glm::vec3(1, 1, 1);
-				it->sub_objects[i]->vertices[vi + 2].color = glm::vec3(1, 1, 1);
 			}
 		}
 	}
@@ -263,11 +285,9 @@ std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p,
 
 		for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
 			if (it.key() == intersectedObject) {
-				for (int i = 0; i < name_objects[it.key()].sub_objects.size(); ++i) {
-					for (int vi = 0; vi < name_objects[it.key()].sub_objects[i]->vertices.size(); ++vi) {
-						name_objects[it.key()].sub_objects[i]->vertices[vi].color = glm::vec3(1, 0, 0);
-					}
-				}
+				name_objects[it.key()].select();
+			} else {
+				name_objects[it.key()].unselect();
 			}
 		}
 	}

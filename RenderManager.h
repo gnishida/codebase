@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "glew.h"
 #include <vector>
@@ -10,15 +10,25 @@ class GeometrySubObject {
 public:
 	QString name;
 	std::vector<Vertex> vertices;
+	bool updated;
 
 public:
-	GeometrySubObject();
+	GeometrySubObject() : updated(false) {}
 	GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices);
 };
 
+/**
+ * GeometryObjectは、1つの選択可能なオブジェクトを表す。
+ */
 class GeometryObject {
 public:
 	std::vector<GeometrySubObject*> sub_objects;
+	bool selected;
+
+public:
+	GeometryObject() : selected(false) {}
+	void select();
+	void unselect();
 };
 
 class VaoObject {
