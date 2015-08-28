@@ -5,7 +5,37 @@
 #define M_PI	3.14159265359
 #endif
 
+#ifndef SQR
+#define SQR(x)	((x) * (x))
+#endif
+
 namespace glutils {
+
+/*
+ * Return the distance from segment ab to point c.
+ */
+float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool segmentOnly) {
+	float r_numerator = (c.x-a.x) * (b.x-a.x) + (c.y-a.y) * (b.y-a.y);
+	float r_denomenator = (b.x-a.x) * (b.x-a.x) + (b.y-a.y) * (b.y-a.y);
+
+	if (r_denomenator <= 0.0f) {
+		return (a - c).length();
+	}
+
+	float r = r_numerator / r_denomenator;
+
+	if (segmentOnly && (r < 0 || r > 1)) {
+		float dist1 = SQR(c.x - a.x) + SQR(c.y - a.y);
+		float dist2 = SQR(c.x - b.x) + SQR(c.y - b.y);
+		if (dist1 < dist2) {	
+			return sqrt(dist1);
+		} else {
+			return sqrt(dist2);
+		}
+	} else {
+		return abs((a.y-c.y) * (b.x-a.x) - (a.x-c.x) * (b.y-a.y)) / sqrt(r_denomenator);
+	}
+}
 
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;

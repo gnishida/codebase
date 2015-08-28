@@ -7,6 +7,10 @@
 
 namespace glutils {
 
+// geometry computation
+float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool segmentOnly = false);
+
+// mesh generation
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const glm::vec3& t3, const glm::vec3& t4, const glm::mat4& mat, std::vector<Vertex>& vertices);
