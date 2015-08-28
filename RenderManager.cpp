@@ -7,20 +7,13 @@
 GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices) : name(name), vertices(vertices) {
 }
 
-GeometryObject::GeometryObject() {
+VaoObject::VaoObject() {
 	vaoCreated = false;
 	vaoOutdated = true;
 	num_vertices = 0;
 }
 
-/*GeometryObject::GeometryObject(const GeometrySubObject& sub_object) {
-	this->sub_objects.push_back(sub_object);
-	this->num_vertices = sub_object.vertices.size();
-	vaoCreated = false;
-	vaoOutdated = true;
-}*/
-
-void GeometryObject::addSubObject(GeometrySubObject* sub_object) {
+void VaoObject::addSubObject(GeometrySubObject* sub_object) {
 	this->sub_objects.push_back(sub_object);
 	this->num_vertices += sub_object->vertices.size();
 	vaoOutdated = true;
@@ -29,7 +22,7 @@ void GeometryObject::addSubObject(GeometrySubObject* sub_object) {
 /**
  * Create VAO according to the vertices.
  */
-void GeometryObject::createVAO() {
+void VaoObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
 	//if (vaoCreated && !vaoOutdated) return;
 
@@ -118,7 +111,7 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 	GeometrySubObject* gso = new GeometrySubObject(object_name, vertices);
 	vao_objects[texId].addSubObject(gso);
 	vao_objects[texId].vaoOutdated = true;
-	name_objects[object_name].push_back(gso);
+	name_objects[object_name].sub_objects.push_back(gso);
 
 	/*
 	if (objects.contains(object_name)) {
@@ -270,9 +263,9 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 
 		for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
 			if (it.key() == intersectedObject) {
-				for (int i = 0; i < name_objects[it.key()].size(); ++i) {
-					for (int vi = 0; vi < name_objects[it.key()][i]->vertices.size(); ++vi) {
-						name_objects[it.key()][i]->vertices[vi].color = glm::vec3(1, 0, 0);
+				for (int i = 0; i < name_objects[it.key()].sub_objects.size(); ++i) {
+					for (int vi = 0; vi < name_objects[it.key()].sub_objects[i]->vertices.size(); ++vi) {
+						name_objects[it.key()].sub_objects[i]->vertices[vi].color = glm::vec3(1, 0, 0);
 					}
 				}
 			}
