@@ -6,25 +6,37 @@
 #include "Vertex.h"
 #include "ShadowMapping.h"
 
+class GeometrySubObject {
+public:
+	QString name;
+	std::vector<Vertex> vertices;
+
+public:
+	GeometrySubObject();
+	GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices);
+};
+
 class GeometryObject {
 public:
 	GLuint vao;
 	GLuint vbo;
-	std::vector<Vertex> vertices;
+	std::vector<GeometrySubObject> sub_objects;
+	int num_vertices;
 	bool vaoCreated;
 	bool vaoUpdated;
 
 public:
 	GeometryObject();
-	GeometryObject(const std::vector<Vertex>& vertices);
-	void addVertices(const std::vector<Vertex>& vertices);
+	GeometryObject(const GeometrySubObject& sub_object);
+	GeometrySubObject* addSubObject(const GeometrySubObject& sub_object);
 	void createVAO();
 };
 
 class RenderManager {
 public:
 	GLuint program;
-	QMap<QString, QMap<GLuint, GeometryObject> > objects;
+	QMap<GLuint, GeometryObject> vao_objects;
+	QMap<QString, std::vector<GeometrySubObject> > name_objects;
 	QMap<QString, GLuint> textures;
 	ShadowMapping shadow;
 
@@ -35,7 +47,7 @@ public:
 	void addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices);
 	void removeObject(const QString& object_name);
 	void renderAll(bool wireframe = false);
-	void render(const QString& object_name, bool wireframe = false);
+	//void render(const QString& object_name, bool wireframe = false);
 	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix);
 	std::vector<QString> intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix);
 

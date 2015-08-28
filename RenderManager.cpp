@@ -4,19 +4,29 @@
 #include <QImage>
 #include <QGLWidget>
 
+GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices) : name(name), vertices(vertices) {
+}
+
 GeometryObject::GeometryObject() {
 	vaoCreated = false;
 	vaoUpdated = false;
+	num_vertices = 0;
 }
 
-GeometryObject::GeometryObject(const std::vector<Vertex>& vertices) : vertices(vertices) {
+GeometryObject::GeometryObject(const GeometrySubObject& sub_object) {
+	this->sub_objects.push_back(sub_object);
+	this->num_vertices = sub_object.vertices.size();
 	vaoCreated = false;
 	vaoUpdated = false;
 }
 
-void GeometryObject::addVertices(const std::vector<Vertex>& vertices) {
-	this->vertices.insert(this->vertices.end(), vertices.begin(), vertices.end());
+GeometrySubObject* GeometryObject::addSubObject(const GeometrySubObject& sub_object) {
+	this->sub_objects.push_back(sub_object);
+	this->num_vertices += sub_object.vertices.size();
+	//this->vertices.insert(this->vertices.end(), vertices.begin(), vertices.end());
 	vaoUpdated = false;
+
+	return &this->sub_objects[this->sub_objects.size() - 1];
 }
 
 /**
@@ -40,7 +50,12 @@ void GeometryObject::createVAO() {
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_vertices, NULL, GL_STATIC_DRAW);
+	int offset = 0;
+	for (int i = 0; i < sub_objects.size(); ++i) {
+		glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i].vertices.size(), sub_objects[i].vertices.data());
+		offset += sizeof(Vertex) * sub_objects[i].vertices.size();
+	}
 	
 	// configure the attributes in the vao
 	glEnableVertexAttribArray(0);
@@ -103,6 +118,10 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 		texId = 0;
 	}
 
+	GeometrySubObject* p = vao_objects[texId].addSubObject(GeometrySubObject(object_name, vertices));
+	name_objects[object_name].push_back(GeometrySubObject(object_name, vertices));
+
+	/*
 	if (objects.contains(object_name)) {
 		if (objects[object_name].contains(texId)) {
 			objects[object_name][texId].addVertices(vertices);
@@ -112,25 +131,62 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 	} else {
 		objects[object_name][texId] = GeometryObject(vertices);
 	}
+	*/
 }
 
 void RenderManager::removeObject(const QString& object_name) {
+	name_objects.remove(object_name);
+	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+		for (int i = 0; i < it->sub_objects.size(); ) {
+			if (it->sub_objects[i].name == object_name) {
+				it->sub_objects.erase(it->sub_objects.begin() + i);
+			} else {
+				++i;
+			}
+		}
+	}
+
+	/*
 	// VAO、VBOを解放する
 	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		glDeleteBuffers(1, &it->vbo);
 		glDeleteVertexArrays(1, &it->vao);
 	}
-
-	objects.remove(object_name);
+	*/
 }
 
 void RenderManager::renderAll(bool wireframe) {
-	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		render(it.key(), wireframe);
+	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+		GLuint texId = it.key();
+		
+		// vaoを作成
+		it->createVAO();
+
+		if (texId > 0) {
+			// テクスチャなら、バインドする
+			glBindTexture(GL_TEXTURE_2D, texId);
+			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 1);
+			glUniform1i(glGetUniformLocation(program, "tex0"), 0);
+		} else {
+			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 0);
+		}
+
+		if (wireframe) {
+			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 1);
+		} else {
+			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 0);
+		}
+
+		// 描画
+		glBindVertexArray(it->vao);
+		glDrawArrays(GL_TRIANGLES, 0, it->num_vertices);
+
+		glBindVertexArray(0);
+
 	}
 }
 
-void RenderManager::render(const QString& object_name, bool wireframe) {
+/*void RenderManager::render(const QString& object_name, bool wireframe) {
 	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		GLuint texId = it.key();
 		
@@ -159,6 +215,7 @@ void RenderManager::render(const QString& object_name, bool wireframe) {
 		glBindVertexArray(0);
 	}
 }
+*/
 
 void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix) {
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
@@ -169,12 +226,15 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 	QString intersectedObject;
 	bool intersected = false;
 
-	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		for (auto it2 = objects[it.key()].begin(); it2 != objects[it.key()].end(); ++it2) {
-			for (int vi = 0; vi < it2->vertices.size(); vi += 3) {
-				glm::vec4 p1 = glm::vec4(it2->vertices[vi + 0].position, 1);
-				glm::vec4 p2 = glm::vec4(it2->vertices[vi + 1].position, 1);
-				glm::vec4 p3 = glm::vec4(it2->vertices[vi + 2].position, 1);
+	for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
+		for (int i = 0; i < it->size(); ++i) {
+			for (int vi = 0; vi < it->at(i).vertices.size(); vi += 3) {
+				int hoge2 = it->size();
+				int hoge = it->at(i).vertices.size();
+
+				glm::vec4 p1 = glm::vec4(it->at(i).vertices[vi + 0].position, 1);
+				glm::vec4 p2 = glm::vec4(it->at(i).vertices[vi + 1].position, 1);
+				glm::vec4 p3 = glm::vec4(it->at(i).vertices[vi + 2].position, 1);
 				p1 = mvpMatrix * p1;
 				p2 = mvpMatrix * p2;
 				p3 = mvpMatrix * p3;
@@ -188,25 +248,24 @@ std::vector<QString> RenderManager::intersectObjects(const glm::vec2& p, const g
 					}
 				}
 
-				it2->vertices[vi + 0].color = glm::vec3(1, 1, 1);
-				it2->vertices[vi + 1].color = glm::vec3(1, 1, 1);
-				it2->vertices[vi + 2].color = glm::vec3(1, 1, 1);
+				it->at(i).vertices[vi + 0].color = glm::vec3(1, 1, 1);
+				it->at(i).vertices[vi + 1].color = glm::vec3(1, 1, 1);
+				it->at(i).vertices[vi + 2].color = glm::vec3(1, 1, 1);
 			}
-
-			it2->vaoUpdated = false;
 		}
 	}
 
 	std::vector<QString> ret;
 
 	if (intersected) {
+		std::cout << intersectedObject.toUtf8().data() << std::endl;
 		ret.push_back(intersectedObject);
 
-		for (auto it = objects.begin(); it != objects.end(); ++it) {
+		for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
 			if (it.key() == intersectedObject) {
-				for (auto it2 = objects[it.key()].begin(); it2 != objects[it.key()].end(); ++it2) {
-					for (int vi = 0; vi < it2->vertices.size(); ++vi) {
-						it2->vertices[vi].color = glm::vec3(1, 0, 0);
+				for (int i = 0; i < name_objects[it.key()].size(); ++i) {
+					for (int vi = 0; vi < name_objects[it.key()][i].vertices.size(); ++vi) {
+						name_objects[it.key()][i].vertices[vi].color = glm::vec3(1, 0, 0);
 					}
 				}
 			}
