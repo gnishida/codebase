@@ -37,6 +37,14 @@ float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool 
 	}
 }
 
+/*
+ * Return the distance from segment ab to point c.
+ */
+float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
+	glm::vec3 v = glm::normalize(b - a);
+	return glm::length(glm::cross(a - c, v));
+}
+
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 
