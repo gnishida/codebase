@@ -152,7 +152,21 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 	*/
 }
 
-void RenderManager::removeObject(const QString& object_name) {
+void RenderManager::removeObjects() {
+	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+		glDeleteBuffers(1, &it->vbo);
+		glDeleteVertexArrays(1, &it->vao);
+		
+		for (int i = 0; i < it->sub_objects.size(); ++i) {
+			delete it->sub_objects[i];
+		}
+	}
+
+	vao_objects.clear();
+	name_objects.clear();
+}
+
+/*void RenderManager::removeObject(const QString& object_name) {
 	name_objects.remove(object_name);
 	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
 		bool removed = false;
@@ -170,15 +184,7 @@ void RenderManager::removeObject(const QString& object_name) {
 			it->vaoOutdated = true;
 		}
 	}
-
-	/*
-	// VAO、VBOを解放する
-	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
-		glDeleteBuffers(1, &it->vbo);
-		glDeleteVertexArrays(1, &it->vao);
-	}
-	*/
-}
+}*/
 
 void RenderManager::renderAll(bool wireframe) {
 	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {

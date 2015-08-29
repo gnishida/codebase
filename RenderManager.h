@@ -59,7 +59,8 @@ public:
 
 	void init(const std::string& vertex_file, const std::string& geometry_file, const std::string& fragment_file, int shadowMapSize);
 	void addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices);
-	void removeObject(const QString& object_name);
+	void removeObjects();
+	//void removeObject(const QString& object_name);
 	void renderAll(bool wireframe = false);
 	//void render(const QString& object_name, bool wireframe = false);
 	void updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix);
