@@ -9,7 +9,7 @@ struct Vertex {
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec3 color;
-	glm::vec3 texCoord;
+	glm::vec2 texCoord;
 
 	Vertex() {}
 
@@ -24,7 +24,7 @@ struct Vertex {
 		color = c;
 	}
 
-	Vertex(const glm::vec3& pos, const glm::vec3& n, const glm::vec3& c, const glm::vec3& tex) {
+	Vertex(const glm::vec3& pos, const glm::vec3& n, const glm::vec3& c, const glm::vec2& tex) {
 		position = pos;
 		normal = n;
 		color = c;

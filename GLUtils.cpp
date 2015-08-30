@@ -100,16 +100,16 @@ void drawQuad(float w, float h, const glm::vec3& color, const glm::mat4& mat, st
 	p4 = mat * p4;
 	n = mat * n;
 
-	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n), color, glm::vec3(1, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec3(1, 1, 0)));
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec2(0, 0)));
+	vertices.push_back(Vertex(glm::vec3(p2), glm::vec3(n), color, glm::vec2(1, 0)));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec2(1, 1)));
 
-	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec3(1, 1, 0)));
-	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), color, glm::vec3(0, 1, 0)));
+	vertices.push_back(Vertex(glm::vec3(p1), glm::vec3(n), color, glm::vec2(0, 0)));
+	vertices.push_back(Vertex(glm::vec3(p3), glm::vec3(n), color, glm::vec2(1, 1)));
+	vertices.push_back(Vertex(glm::vec3(p4), glm::vec3(n), color, glm::vec2(0, 1)));
 }
 
-void drawQuad(float w, float h, const glm::vec3& t1, const glm::vec3& t2, const glm::vec3& t3, const glm::vec3& t4, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+void drawQuad(float w, float h, const glm::vec2& t1, const glm::vec2& t2, const glm::vec2& t3, const glm::vec2& t4, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	glm::vec4 p1(-w * 0.5, -h * 0.5, 0, 1);
 	glm::vec4 p2(w * 0.5, -h * 0.5, 0, 1);
 	glm::vec4 p3(w * 0.5, h * 0.5, 0, 1);
@@ -161,10 +161,10 @@ void drawPolygon(const std::vector<glm::vec3>& points, const glm::vec3& color, c
 void drawPolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, const std::vector<glm::vec2>& texCoords, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	glm::vec4 p1(points.back(), 0, 1);
 	p1 = mat * p1;
-	glm::vec3 t1 = glm::vec3(texCoords.back(), 0);
+	glm::vec2 t1 = texCoords.back();
 	glm::vec4 p2(points[0], 0, 1);
 	p2 = mat * p2;
-	glm::vec3 t2 = glm::vec3(texCoords[0], 0);
+	glm::vec2 t2 = texCoords[0];
 
 	glm::vec3 normal;
 	bool normal_computed = false;
@@ -172,7 +172,7 @@ void drawPolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, c
 	for (int i = 0; i < points.size() - 2; ++i) {
 		glm::vec4 p3(points[i + 1], 0, 1);
 		p3 = mat * p3;
-		glm::vec3 t3(texCoords[i + 1], 0);
+		glm::vec2 t3 = texCoords[i + 1];
 
 		if (!normal_computed) {
 			normal = glm::cross(glm::vec3(p2 - p1), glm::vec3(p3 - p1));
