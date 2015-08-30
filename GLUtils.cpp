@@ -1,6 +1,23 @@
 ﻿#include "GLUtils.h"
 #include <QGLWidget>
 
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Partition_traits_2.h>
+#include <CGAL/partition_2.h>
+#include <CGAL/point_generators_2.h>
+#include <CGAL/random_polygon_2.h>
+#include <cassert>
+#include <list>
+
+typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+typedef CGAL::Partition_traits_2<K>                         Traits;
+typedef Traits::Point_2                                     Point_2;
+typedef Traits::Polygon_2                                   Polygon_2;
+typedef Polygon_2::Vertex_iterator                          Vertex_iterator;
+typedef std::list<Polygon_2>                                Polygon_list;
+typedef CGAL::Creator_uniform_2<int, Point_2>               Creator;
+typedef CGAL::Random_points_in_square_2< Point_2, Creator > Point_generator;
+
 #ifndef M_PI
 #define M_PI	3.14159265359
 #endif
@@ -138,6 +155,70 @@ void drawPolygon(const std::vector<glm::vec3>& points, const glm::vec3& color, c
 		vertices.push_back(Vertex(glm::vec3(p3), normal, color));
 
 		p2 = p3;
+	}
+}
+
+void drawPolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, const std::vector<glm::vec2>& texCoords, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	glm::vec4 p1(points.back(), 0, 1);
+	p1 = mat * p1;
+	glm::vec3 t1 = glm::vec3(texCoords.back(), 0);
+	glm::vec4 p2(points[0], 0, 1);
+	p2 = mat * p2;
+	glm::vec3 t2 = glm::vec3(texCoords[0], 0);
+
+	glm::vec3 normal;
+	bool normal_computed = false;
+
+	for (int i = 0; i < points.size() - 2; ++i) {
+		glm::vec4 p3(points[i + 1], 0, 1);
+		p3 = mat * p3;
+		glm::vec3 t3(texCoords[i + 1], 0);
+
+		if (!normal_computed) {
+			normal = glm::cross(glm::vec3(p2 - p1), glm::vec3(p3 - p1));
+			normal = glm::vec3(mat * glm::vec4(normal, 0));
+			normal_computed = true;
+		}
+
+		vertices.push_back(Vertex(glm::vec3(p1), normal, color, t1));
+		vertices.push_back(Vertex(glm::vec3(p2), normal, color, t2));
+		vertices.push_back(Vertex(glm::vec3(p3), normal, color, t3));
+
+		p2 = p3;
+		t2 = t3;
+	}
+}
+
+void drawConcavePolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	float max_x = 0.0f;
+	float max_y = 0.0f;
+
+	Polygon_2 polygon;
+	for (int i = 0; i < points.size(); ++i) {
+		polygon.push_back(Point_2(points[i].x, points[i].y));
+
+		if (points[i].x > max_x) {
+			max_x = points[i].x;
+		}
+		if (points[i].y > max_y) {
+			max_y = points[i].y;
+		}
+	}
+	
+	// tesselate the concave polygon
+	Polygon_list partition_polys;
+	Traits       partition_traits;
+	CGAL::greene_approx_convex_partition_2(polygon.vertices_begin(), polygon.vertices_end(), std::back_inserter(partition_polys), partition_traits);
+
+	for (auto fit = partition_polys.begin(); fit != partition_polys.end(); ++fit) {
+		std::vector<glm::vec2> pts;
+		std::vector<glm::vec2> texCoords;
+		for (auto vit = fit->vertices_begin(); vit != fit->vertices_end(); ++vit) {
+			pts.push_back(glm::vec2(vit->x(), vit->y()));
+			texCoords.push_back(glm::vec2(vit->x() / max_x, vit->y() / max_y));
+		}
+
+		drawPolygon(pts, color, texCoords, mat, vertices);
 	}
 }
 
