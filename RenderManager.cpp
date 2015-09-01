@@ -48,6 +48,7 @@ void VaoObject::addSubObject(GeometrySubObject* sub_object) {
  */
 void VaoObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
+<<<<<<< HEAD
 	if (vaoCreated && !vaoOutdated) return;
 
 	if (!vaoCreated) {
@@ -74,6 +75,14 @@ void VaoObject::createVAO() {
 	} else {
 		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+=======
+	if (vaoCreated && vaoUpdated) return;
+
+	if (vaoCreated) {
+		// 古いVAO, VBOを解放する
+		glDeleteBuffers(1, &vbo);
+		glDeleteVertexArrays(1, &vao);
+>>>>>>> parent of a6ef2a1... update.
 	}
 
 	int offset = 0;
@@ -252,6 +261,7 @@ void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& lig
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
 
+<<<<<<< HEAD
 std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
 	float min_z = (std::numeric_limits<float>::max)();
 	QString intersectedObject;
@@ -301,6 +311,8 @@ std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p,
 	return ret;
 }
 
+=======
+>>>>>>> parent of a6ef2a1... update.
 
 GLuint RenderManager::loadTexture(const QString& filename) {
 	QImage img;
@@ -331,28 +343,3 @@ GLuint RenderManager::loadTexture(const QString& filename) {
 	return texture;
 }
 
-bool RenderManager::withinTriangle(const glm::vec2& p, const glm::vec4& a, const glm::vec4& b, const glm::vec4& c, glm::vec3& intPt) {
-	if (a.z < 0 || b.z < 0 || c.z < 0) return false;
-
-	// Compute vectors        
-	glm::vec2 v0 = glm::vec2(c / c.w - a / a.w);
-	glm::vec2 v1 = glm::vec2(b / b.w - a / a.w);
-	glm::vec2 v2 = p - glm::vec2(a / a.w);
-
-	// Compute dot products
-	float dot00 = glm::dot(v0, v0);
-	float dot01 = glm::dot(v0, v1);
-	float dot02 = glm::dot(v0, v2);
-	float dot11 = glm::dot(v1, v1);
-	float dot12 = glm::dot(v1, v2);
-
-	// Compute barycentric coordinates
-	float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
-	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-	intPt = glm::vec3(p, a.z + (c.z - a.z) * u + (b.z - a.z) * v);
-
-	// Check if point is in triangle
-	return (u >= 0) && (v >= 0) && (u + v < 1);
-}
