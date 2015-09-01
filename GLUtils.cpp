@@ -62,6 +62,14 @@ float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
 	return glm::length(glm::cross(a - c, v));
 }
 
+/**
+ * Ray-Triangle intersection
+ * Compute the intersection of a ray that starts from a and its direction v, and a plane whose normal is n and p is on the plane.
+ */
+glm::vec3 rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& n, const glm::vec3& p) {
+	return a + v * glm::dot(p - a, n) / glm::dot(v, n);
+}
+
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
 	int slices = 12;
 
@@ -219,6 +227,28 @@ void drawConcavePolygon(const std::vector<glm::vec2>& points, const glm::vec3& c
 		}
 
 		drawPolygon(pts, color, texCoords, mat, vertices);
+	}
+}
+
+void drawGrid(float width, float height, float cell_size, const glm::vec3& lineColor, const glm::vec3& backgroundColor, const glm::mat4& mat, std::vector<Vertex>& vertices) {
+	drawQuad(width, height, backgroundColor, mat, vertices);
+	
+	for (float x = 0; x < width * 0.5; x += cell_size) {
+		glm::mat4 m = glm::translate(mat, glm::vec3(x, -height * 0.5, 0));
+		drawCylinderY(0.1, 0.1, height, lineColor, m, vertices);
+		if (x > 0) {
+			glm::mat4 m = glm::translate(mat, glm::vec3(-x, -height * 0.5, 0));
+			drawCylinderY(0.1, 0.1, height, lineColor, m, vertices);
+		}
+	}
+
+	for (float y = 0; y < height * 0.5; y += cell_size) {
+		glm::mat4 m = glm::translate(mat, glm::vec3(-width * 0.5, y, 0));
+		drawCylinderX(0.1, 0.1, width, lineColor, m, vertices);
+		if (y > 0) {
+			glm::mat4 m = glm::translate(mat, glm::vec3(-width * 0.5, -y, 0));
+			drawCylinderX(0.1, 0.1, width, lineColor, m, vertices);
+		}
 	}
 }
 

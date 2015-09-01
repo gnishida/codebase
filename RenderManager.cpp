@@ -189,7 +189,7 @@ void RenderManager::removeObjects() {
 void RenderManager::renderAll(bool wireframe) {
 	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
 		GLuint texId = it.key();
-		
+
 		// vaoを作成
 		it->createVAO();
 

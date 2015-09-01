@@ -10,6 +10,7 @@ namespace glutils {
 // geometry computation
 float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool segmentOnly = false);
 float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
+glm::vec3 rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& n, const glm::vec3& p);
 
 // mesh generation
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
@@ -18,6 +19,7 @@ void drawQuad(float w, float h, const glm::vec2& t1, const glm::vec2& t2, const 
 void drawPolygon(const std::vector<glm::vec3>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawPolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, const std::vector<glm::vec2>& texCoords, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawConcavePolygon(const std::vector<glm::vec2>& points, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
+void drawGrid(float width, float height, float cell_size, const glm::vec3& lineColor, const glm::vec3& backgroundColor, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawBox(float length_x, float length_y, float length_z, glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawSphere(float radius, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
 void drawEllipsoid(float r1, float r2, float r3, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);
