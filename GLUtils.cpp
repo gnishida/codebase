@@ -63,6 +63,30 @@ float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
 }
 
 /**
+ * Line-line intersection
+ * Compute the intersection of a line that pass though p1 and whose vector is v1 and another line that pass through p2 and whose vector is v2.
+ */
+glm::vec3 lineLineIntersection(const glm::vec3& p1, const glm::vec3& v1, const glm::vec3& p2, const glm::vec3& v2) {
+	// tentative implementation (might be wrong)
+	glm::mat2 m1;
+	m1[0].x = glm::dot(v1, v1);
+	m1[0].y = glm::dot(v1, v2);
+	m1[1].x = glm::dot(v1, -v2);
+	m1[1].y = glm::dot(v2, -v2);
+
+	glm::vec2 m2;
+	m2.x = glm::dot(v1, p2 - p1);
+	m2.y = glm::dot(v2, p2 - p1);
+
+	glm::vec2 st = glm::inverse(m1) * m2;
+
+	glm::vec3 pp1 = p1 + v1 * st.x;
+	glm::vec3 pp2 = p2 + v2 * st.y;
+
+	return (pp1 + pp2) * 0.5f;
+}
+
+/**
  * Ray-Triangle intersection
  * Compute the intersection of a ray that starts from a and its direction v, and a plane whose normal is n and p is on the plane.
  */

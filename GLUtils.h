@@ -11,6 +11,7 @@ namespace glutils {
 // geometry computation
 float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool segmentOnly = false);
 float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
+glm::vec3 lineLineIntersection(const glm::vec3& p1, const glm::vec3& v1, const glm::vec3& p2, const glm::vec3& v2);
 glm::vec3 rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& n, const glm::vec3& p);
 
 // mesh generation

@@ -132,7 +132,7 @@ void RenderManager::removeObject(const QString& object_name) {
 
 void RenderManager::renderAll(bool wireframe) {
 	for (auto it = objects.begin(); it != objects.end(); ++it) {
-		render(it.key());
+		render(it.key(), wireframe);
 	}
 }
 
