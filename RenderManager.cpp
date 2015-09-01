@@ -4,51 +4,27 @@
 #include <QImage>
 #include <QGLWidget>
 
-GeometrySubObject::GeometrySubObject(const QString& name, const std::vector<Vertex>& vertices) : name(name), vertices(vertices), updated(true) {
-}
-
-void GeometryObject::select() {
-	selected = true;
-	for (int i = 0; i < sub_objects.size(); ++i) {
-		for (int vi = 0; vi < sub_objects[i]->vertices.size(); ++vi) {
-			// 赤色に塗る (To bi fixed!)
-			sub_objects[i]->vertices[vi].color = glm::vec3(1, 0, 0);
-		}
-		sub_objects[i]->updated = true;
-	}
-}
-
-void GeometryObject::unselect() {
-	if (!selected) return;
-
-	selected = false;
-	for (int i = 0; i < sub_objects.size(); ++i) {
-		for (int vi = 0; vi < sub_objects[i]->vertices.size(); ++vi) {
-			// 白色に塗る (To bi fixed!)
-			sub_objects[i]->vertices[vi].color = glm::vec3(1, 1, 1);
-		}
-		sub_objects[i]->updated = true;
-	}
-}
-
-VaoObject::VaoObject() {
+GeometryObject::GeometryObject() {
 	vaoCreated = false;
 	vaoOutdated = true;
-	num_vertices = 0;
 }
 
-void VaoObject::addSubObject(GeometrySubObject* sub_object) {
-	this->sub_objects.push_back(sub_object);
-	this->num_vertices += sub_object->vertices.size();
+GeometryObject::GeometryObject(const std::vector<Vertex>& vertices) {
+	this->vertices = vertices;
+	vaoCreated = false;
+	vaoOutdated = true;
+}
+
+void GeometryObject::addVertices(const std::vector<Vertex>& vertices) {
+	this->vertices.insert(this->vertices.end(), vertices.begin(), vertices.end());
 	vaoOutdated = true;
 }
 
 /**
  * Create VAO according to the vertices.
  */
-void VaoObject::createVAO() {
+void GeometryObject::createVAO() {
 	// VAOが作成済みで、最新なら、何もしないで終了
-<<<<<<< HEAD
 	if (vaoCreated && !vaoOutdated) return;
 
 	if (!vaoCreated) {
@@ -59,41 +35,25 @@ void VaoObject::createVAO() {
 		// create VBO and tranfer the vertices data to GPU buffer
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_vertices, NULL, GL_DYNAMIC_DRAW);
-
-		// configure the attributes in the vao
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
 
 		vaoCreated = true;
 	} else {
 		glBindVertexArray(vao);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-=======
-	if (vaoCreated && vaoUpdated) return;
-
-	if (vaoCreated) {
-		// 古いVAO, VBOを解放する
-		glDeleteBuffers(1, &vbo);
-		glDeleteVertexArrays(1, &vao);
->>>>>>> parent of a6ef2a1... update.
 	}
 
-	int offset = 0;
-	for (int i = 0; i < sub_objects.size(); ++i) {
-		if (sub_objects[i]->updated) {
-			glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(Vertex) * sub_objects[i]->vertices.size(), sub_objects[i]->vertices.data());
-		}
-		sub_objects[i]->updated = false;
-		offset += sizeof(Vertex) * sub_objects[i]->vertices.size();
-	}
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
+	// configure the attributes in the vao
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+		
 	// unbind the vao
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -143,12 +103,6 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 		texId = 0;
 	}
 
-	GeometrySubObject* gso = new GeometrySubObject(object_name, vertices);
-	vao_objects[texId].addSubObject(gso);
-	vao_objects[texId].vaoOutdated = true;
-	name_objects[object_name].sub_objects.push_back(gso);
-
-	/*
 	if (objects.contains(object_name)) {
 		if (objects[object_name].contains(texId)) {
 			objects[object_name][texId].addVertices(vertices);
@@ -158,75 +112,31 @@ void RenderManager::addObject(const QString& object_name, const QString& texture
 	} else {
 		objects[object_name][texId] = GeometryObject(vertices);
 	}
-	*/
 }
 
 void RenderManager::removeObjects() {
-	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		removeObject(it.key());
+	}
+	objects.clear();
+}
+
+void RenderManager::removeObject(const QString& object_name) {
+	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		glDeleteBuffers(1, &it->vbo);
 		glDeleteVertexArrays(1, &it->vao);
-		
-		for (int i = 0; i < it->sub_objects.size(); ++i) {
-			delete it->sub_objects[i];
-		}
 	}
 
-	vao_objects.clear();
-	name_objects.clear();
+	objects[object_name].clear();
 }
-
-/*void RenderManager::removeObject(const QString& object_name) {
-	name_objects.remove(object_name);
-	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
-		bool removed = false;
-		
-		for (int i = 0; i < it->sub_objects.size(); ) {
-			if (it->sub_objects[i]->name == object_name) {
-				it->sub_objects.erase(it->sub_objects.begin() + i);
-				removed = true;
-			} else {
-				++i;
-			}
-		}
-
-		if (removed) {
-			it->vaoOutdated = true;
-		}
-	}
-}*/
 
 void RenderManager::renderAll(bool wireframe) {
-	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
-		GLuint texId = it.key();
-
-		// vaoを作成
-		it->createVAO();
-
-		if (texId > 0) {
-			// テクスチャなら、バインドする
-			glBindTexture(GL_TEXTURE_2D, texId);
-			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 1);
-			glUniform1i(glGetUniformLocation(program, "tex0"), 0);
-		} else {
-			glUniform1i(glGetUniformLocation(program, "textureEnabled"), 0);
-		}
-
-		if (wireframe) {
-			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 1);
-		} else {
-			glUniform1i(glGetUniformLocation(program, "wireframeEnalbed"), 0);
-		}
-
-		// 描画
-		glBindVertexArray(it->vao);
-		glDrawArrays(GL_TRIANGLES, 0, it->num_vertices);
-
-		glBindVertexArray(0);
-
+	for (auto it = objects.begin(); it != objects.end(); ++it) {
+		render(it.key());
 	}
 }
 
-/*void RenderManager::render(const QString& object_name, bool wireframe) {
+void RenderManager::render(const QString& object_name, bool wireframe) {
 	for (auto it = objects[object_name].begin(); it != objects[object_name].end(); ++it) {
 		GLuint texId = it.key();
 		
@@ -255,64 +165,10 @@ void RenderManager::renderAll(bool wireframe) {
 		glBindVertexArray(0);
 	}
 }
-*/
 
 void RenderManager::updateShadowMap(GLWidget3D* glWidget3D, const glm::vec3& light_dir, const glm::mat4& light_mvpMatrix) {
 	shadow.update(glWidget3D, light_dir, light_mvpMatrix);
 }
-
-<<<<<<< HEAD
-std::vector<GeometryObject*> RenderManager::intersectObjects(const glm::vec2& p, const glm::mat4& mvpMatrix) {
-	float min_z = (std::numeric_limits<float>::max)();
-	QString intersectedObject;
-	uint intersectedVao;
-	bool intersected = false;
-
-	for (auto it = vao_objects.begin(); it != vao_objects.end(); ++it) {
-		for (int i = 0; i < it->sub_objects.size(); ++i) {
-			for (int vi = 0; vi < it->sub_objects[i]->vertices.size(); vi += 3) {
-				glm::vec4 p1 = glm::vec4(it->sub_objects[i]->vertices[vi + 0].position, 1);
-				glm::vec4 p2 = glm::vec4(it->sub_objects[i]->vertices[vi + 1].position, 1);
-				glm::vec4 p3 = glm::vec4(it->sub_objects[i]->vertices[vi + 2].position, 1);
-				p1 = mvpMatrix * p1;
-				p2 = mvpMatrix * p2;
-				p3 = mvpMatrix * p3;
-
-				glm::vec3 intPt;
-				if (withinTriangle(p, p1, p2, p3, intPt)) {
-					if (intPt.z < min_z && intPt.z > 0) {
-						intersected = true;
-						min_z = intPt.z;
-						intersectedObject = it->sub_objects[i]->name;
-						intersectedVao = it.key();
-					}
-				}
-			}
-		}
-	}
-
-	std::vector<GeometryObject*> ret;
-
-	if (intersected) {
-		ret.push_back(&name_objects[intersectedObject]);
-
-		// 選択されたオブジェクトを含むvaoをoutdatedにする
-		vao_objects[intersectedVao].vaoOutdated = true;
-
-		for (auto it = name_objects.begin(); it != name_objects.end(); ++it) {
-			if (it.key() == intersectedObject) {
-				name_objects[it.key()].select();
-			} else {
-				name_objects[it.key()].unselect();
-			}
-		}
-	}
-
-	return ret;
-}
-
-=======
->>>>>>> parent of a6ef2a1... update.
 
 GLuint RenderManager::loadTexture(const QString& filename) {
 	QImage img;
