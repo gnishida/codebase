@@ -9,10 +9,12 @@
 namespace glutils {
 
 // geometry computation
+bool isWithinPolygon(const glm::vec2& p, const std::vector<glm::vec2>& points);
 float distance(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, bool segmentOnly = false);
 float distance(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
 glm::vec3 lineLineIntersection(const glm::vec3& p1, const glm::vec3& v1, const glm::vec3& p2, const glm::vec3& v2);
-glm::vec3 rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& n, const glm::vec3& p);
+glm::vec3 rayPlaneIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& p, const glm::vec3& n);
+bool rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, glm::vec3& intPt);
 
 // mesh generation
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices);

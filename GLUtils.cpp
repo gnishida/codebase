@@ -1,11 +1,15 @@
 ﻿#include "GLUtils.h"
 #include <QGLWidget>
-
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Partition_traits_2.h>
 #include <CGAL/partition_2.h>
 #include <CGAL/point_generators_2.h>
 #include <CGAL/random_polygon_2.h>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/ring.hpp>
 #include <cassert>
 #include <list>
 
@@ -18,6 +22,9 @@ typedef std::list<Polygon_2>                                Polygon_list;
 typedef CGAL::Creator_uniform_2<int, Point_2>               Creator;
 typedef CGAL::Random_points_in_square_2< Point_2, Creator > Point_generator;
 
+//typedef boost::geometry::model::polygon<point_type>			polygon_type;
+typedef boost::geometry::model::d2::point_xy<double>		point_2d;
+
 #ifndef M_PI
 #define M_PI	3.14159265359
 #endif
@@ -27,6 +34,19 @@ typedef CGAL::Random_points_in_square_2< Point_2, Creator > Point_generator;
 #endif
 
 namespace glutils {
+
+/**
+ * Test if the point is inside the polygon
+ */
+bool isWithinPolygon(const glm::vec2& p, const std::vector<glm::vec2>& points) {
+	boost::geometry::model::ring<point_2d> contour;
+	for (int i = 0; i < points.size(); ++i) {
+		contour.push_back(point_2d(points[i].x, points[i].y));
+	}
+	boost::geometry::correct(contour);
+
+	return boost::geometry::within(point_2d(p.x, p.y), contour);
+}
 
 /*
  * Return the distance from segment ab to point c.
@@ -87,11 +107,36 @@ glm::vec3 lineLineIntersection(const glm::vec3& p1, const glm::vec3& v1, const g
 }
 
 /**
- * Ray-Triangle intersection
+ * Ray-Plane intersection
  * Compute the intersection of a ray that starts from a and its direction v, and a plane whose normal is n and p is on the plane.
  */
-glm::vec3 rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& n, const glm::vec3& p) {
+glm::vec3 rayPlaneIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& p, const glm::vec3& n) {
 	return a + v * glm::dot(p - a, n) / glm::dot(v, n);
+}
+
+/**
+ * Ray-Triangle intersection
+ */
+bool rayTriangleIntersection(const glm::vec3& a, const glm::vec3& v, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, glm::vec3& intPt) {
+	glm::vec3 n = glm::cross(p2 - p1, p3 - p1);
+	intPt = a + v * glm::dot(p1 - a, n) / glm::dot(v, n);
+
+	cv::Mat_<double> L(3, 1);
+	L(0, 0) = (intPt - p1).x;
+	L(1, 0) = (intPt - p1).y;
+	L(2, 0) = (intPt - p1).z;
+	cv::Mat_<double> R(3, 2);
+	R(0, 0) = (p2 - p1).x;
+	R(1, 0) = (p2 - p1).y;
+	R(2, 0) = (p2 - p1).z;
+	R(0, 1) = (p3 - p1).x;
+	R(1, 1) = (p3 - p1).y;
+	R(2, 1) = (p3 - p1).z;
+
+	cv::Mat_<double> st = R.inv(cv::DECOMP_SVD) * L;
+	
+	if (st(0, 0) >= 0 && st(1, 0) >= 0 && st(0, 0) + st(1, 0) <= 1) return true;
+	else return false;
 }
 
 void drawCircle(float r1, float r2, const glm::vec3& color, const glm::mat4& mat, std::vector<Vertex>& vertices) {
